@@ -3,25 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>预测市场</title>
+    <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-            text-align: center;
-            padding: 50px 20px;
+            margin: 0;
+            padding: 20px;
             background: linear-gradient(to bottom, #0088cc, #005f99);
             color: white;
-            margin: 0;
+            text-align: center;
         }
-        h1 { font-size: 28px; }
-        p { font-size: 18px; }
+        h1 { font-size: 24px; margin: 20px 0; }
+        button {
+            background: #ffffff;
+            color: #0088cc;
+            border: none;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .market {
+            background: rgba(255,255,255,0.2);
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
-    <h1>🚀 欢迎来到预测市场</h1>
-    <p>这是一个 Telegram Mini App 测试页面</p >
-    <p>你的名字：<span id="user">加载中...</span></p >
+    <h1>🚀 中国预测市场</h1>
+    <p>欢迎，<span id="user">朋友</span>！</p >
+
+    <button onclick="createMarket()">📝 发布新预测</button>
+    <button onclick="viewMarkets()">📋 查看所有预测</button>
+
+    <div id="result" style="margin-top: 20px; font-size: 16px; line-height: 1.6;"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -30,12 +49,50 @@
 
         const user = tg.initDataUnsafe?.user;
         if (user) {
-            document.getElementById('user').textContent = user.first_name + " " + (user.last_name || "");
-        } else {
-            document.getElementById('user').textContent = "测试用户";
+            document.getElementById('user').textContent = user.first_name;
         }
 
-        tg.showAlert("小程序启动成功！欢迎来到你的预测市场 👋");
+        function createMarket() {
+            const title = prompt("请输入预测标题，例如：\nSora 本月会向中国用户开放吗？");
+            
+            if (title && title.trim() !== "") {
+                let markets = JSON.parse(localStorage.getItem('markets') || '[]');
+                markets.push({
+                    id: Date.now(),
+                    title: title.trim(),
+                    creator: user ? user.first_name : "匿名",
+                    time: new Date().toLocaleString('zh-CN')
+                });
+                localStorage.setItem('markets', JSON.stringify(markets));
+
+                document.getElementById('result').innerHTML = 
+                    `✅ 发布成功！<br><b>\( {title}</b><br>时间： \){new Date().toLocaleString('zh-CN')}`;
+                
+                tg.showAlert("预测发布成功！");
+            } else {
+                tg.showAlert("标题不能为空！");
+            }
+        }
+
+        function viewMarkets() {
+            let markets = JSON.parse(localStorage.getItem('markets') || '[]');
+            let html = "<h2>当前预测市场：</h2>";
+
+            if (markets.length === 0) {
+                html += "<p>还没有任何预测，快去发布第一个吧！</p >";
+            } else {
+                markets.forEach(m => {
+                    html += `<div class="market">
+                        <b>${m.title}</b><br>
+                        发布者：${m.creator}<br>
+                        时间：${m.time}
+                    </div>`;
+                });
+            }
+            document.getElementById('result').innerHTML = html;
+        }
+
+        window.onload = viewMarkets;
     </script>
 </body>
 </html>
