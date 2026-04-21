@@ -6,33 +6,12 @@
     <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-            margin: 0;
-            padding: 15px;
-            background: linear-gradient(to bottom, #0088cc, #005f99);
-            color: white;
-            text-align: center;
-        }
-        h1 { font-size: 26px; margin: 15px 0; }
-        button {
-            padding: 14px 24px;
-            margin: 8px 4px;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: bold;
-            border: none;
-            min-width: 140px;
-        }
-        .yes-btn { background: #4CAF50; color: white; }
-        .no-btn { background: #f44336; color: white; }
-        .market {
-            background: rgba(255,255,255,0.25);
-            margin: 15px 0;
-            padding: 18px;
-            border-radius: 12px;
-            text-align: left;
-        }
+        body {font-family:Arial,sans-serif;margin:0;padding:15px;background:linear-gradient(#0088cc,#005f99);color:white;text-align:center;}
+        h1 {font-size:26px;margin:15px 0;}
+        button {padding:14px 24px;margin:8px;border-radius:12px;font-size:17px;font-weight:bold;border:none;min-width:140px;}
+        .yes-btn {background:#4CAF50;color:white;}
+        .no-btn {background:#f44336;color:white;}
+        .market {background:rgba(255,255,255,0.25);margin:15px 0;padding:18px;border-radius:12px;text-align:left;}
     </style>
 </head>
 <body>
@@ -52,40 +31,11 @@
         const user = tg.initDataUnsafe?.user || {};
         document.getElementById('user').textContent = user.first_name || "朋友";
 
-        const BIN_ID = "69e6f29c36566621a8d56b36";
-        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-        let markets = [];
-
-        async function loadMarkets() {
-            try {
-                const res = await fetch(API_URL + "/latest");
-                if (res.ok) {
-                    const data = await res.json();
-                    markets = data.record.markets || [];
-                }
-            } catch(e) {}
-            viewMarkets();
-        }
-
-        async function saveMarkets() {
-            try {
-                await fetch(API_URL, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": "请在这里替换成你的Master Key"
-                    },
-                    body: JSON.stringify({ markets: markets })
-                });
-            } catch(e) {}
-        }
+        let markets = JSON.parse(localStorage.getItem('markets') || '[]');
 
         function createMarket() {
             const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
-            if (!title || title.trim() === "") {
-                tg.showAlert("标题不能为空！");
-                return;
-            }
+            if (!title || title.trim() === "") return tg.showAlert("标题不能为空！");
 
             markets.push({
                 id: Date.now(),
@@ -96,7 +46,7 @@
                 no: 0
             });
 
-            saveMarkets();
+            localStorage.setItem('markets', JSON.stringify(markets));
             tg.showAlert("✅ 发布成功！");
             viewMarkets();
         }
@@ -111,15 +61,14 @@
                     const yesP = Math.round(((m.yes || 0) / total) * 100);
                     const noP = Math.round(((m.no || 0) / total) * 100);
 
-                    html += `
-                        <div class="market">
-                            <b>${m.title}</b><br>
-                            <small>发布者：${m.creator} | ${m.time}</small><br><br>
-                            <button class="yes-btn" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesP}%)</button>
-                            <span style="margin-left:15px">${m.yes || 0} 人</span><br><br>
-                            <button class="no-btn" onclick="vote(\( {m.id}, 'no')">No ( \){noP}%)</button>
-                            <span style="margin-left:15px">${m.no || 0} 人</span>
-                        </div>`;
+                    html += `<div class="market">
+                        <b>${m.title}</b><br>
+                        <small>发布者：${m.creator} | ${m.time}</small><br><br>
+                        <button class="yes-btn" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesP}%)</button>
+                        <span style="margin-left:15px">${m.yes || 0} 人</span><br><br>
+                        <button class="no-btn" onclick="vote(\( {m.id}, 'no')">No ( \){noP}%)</button>
+                        <span style="margin-left:15px">${m.no || 0} 人</span>
+                    </div>`;
                 });
             }
             document.getElementById('result').innerHTML = html;
@@ -128,16 +77,15 @@
         function vote(id, option) {
             const m = markets.find(item => item.id === id);
             if (!m) return;
-
             if (option === 'yes') m.yes = (m.yes || 0) + 1;
             else m.no = (m.no || 0) + 1;
 
-            saveMarkets();
+            localStorage.setItem('markets', JSON.stringify(markets));
             tg.showAlert(`你选择了 ${option.toUpperCase()}！`);
             viewMarkets();
         }
 
-        window.onload = loadMarkets;
+        window.onload = viewMarkets;
     </script>
 </body>
 </html>
