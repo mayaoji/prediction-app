@@ -8,7 +8,8 @@
     <style>
         body {font-family:Arial,sans-serif;margin:0;padding:20px;background:linear-gradient(#0088cc,#005f99);color:white;text-align:center;}
         h1 {margin:20px 0;}
-        button {padding:14px 24px;margin:8px;border-radius:12px;font-size:17px;font-weight:bold;border:none;width:140px;}
+        button {padding:14px 24px;margin:8px;border-radius:12px;font-size:17px;font-weight:bold;border:none;width:160px;}
+        .connect-btn {background:#1a73e8;color:white;width:90%;max-width:320px;}
         .yes-btn {background:#4CAF50;color:white;}
         .no-btn {background:#f44336;color:white;}
         .market {background:rgba(255,255,255,0.25);margin:15px 0;padding:18px;border-radius:12px;text-align:left;}
@@ -18,6 +19,7 @@
     <h1>🚀 中国预测市场</h1>
     <p>欢迎，<span id="user">朋友</span>！</p >
 
+    <button onclick="connectWallet()" class="connect-btn">🔗 连接 TON 钱包</button>
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
 
@@ -32,6 +34,12 @@
         document.getElementById("user").textContent = user.first_name || "朋友";
 
         let markets = JSON.parse(localStorage.getItem("markets") || "[]");
+        let walletConnected = false;
+
+        function connectWallet() {
+            walletConnected = true;
+            tg.showAlert("✅ TON 钱包连接成功！\n\n现在可以正常买入份额了。\n（真实支付正在开发中）");
+        }
 
         function createMarket() {
             const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
@@ -46,67 +54,3 @@
                 time: new Date().toLocaleString("zh-CN"),
                 yes: 0,
                 no: 0
-            });
-            localStorage.setItem("markets", JSON.stringify(markets));
-            tg.showAlert("✅ 发布成功！");
-            viewMarkets();
-        }
-
-        function viewMarkets() {
-            let html = "<h2>当前活跃预测：</h2>";
-            if (markets.length === 0) {
-                html += "<p>还没有预测，快去发布第一个吧！</p >";
-            } else {
-                for (var i = 0; i < markets.length; i++) {
-                    var m = markets[i];
-                    var total = (m.yes || 0) + (m.no || 0) || 1;
-                    var yesP = Math.round(((m.yes || 0) / total) * 100);
-                    var noP = Math.round(((m.no || 0) / total) * 100);
-
-                    html += '<div class="market">';
-                    html += "<b>" + m.title + "</b><br>";
-                    html += "<small>发布者：" + m.creator + " | " + m.time + "</small><br><br>";
-                    html += '<button class="yes-btn" onclick="buyYes(' + m.id + ')">Yes (' + yesP + '%)</button>';
-                    html += '<span style="margin-left:15px">' + (m.yes || 0) + ' 份额</span><br><br>';
-                    html += '<button class="no-btn" onclick="buyNo(' + m.id + ')">No (' + noP + '%)</button>';
-                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 份额</span>';
-                    html += "</div>";
-                }
-            }
-            document.getElementById("result").innerHTML = html;
-        }
-
-        function buyYes(id) {
-            const amount = prompt("请输入买入 Yes 的份额数量：", "10");
-            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
-            
-            for (var i = 0; i < markets.length; i++) {
-                if (markets[i].id === id) {
-                    markets[i].yes = (markets[i].yes || 0) + parseInt(amount);
-                    break;
-                }
-            }
-            localStorage.setItem("markets", JSON.stringify(markets));
-            tg.showAlert("✅ 已买入 " + amount + " Yes 份额！");
-            viewMarkets();
-        }
-
-        function buyNo(id) {
-            const amount = prompt("请输入买入 No 的份额数量：", "10");
-            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
-            
-            for (var i = 0; i < markets.length; i++) {
-                if (markets[i].id === id) {
-                    markets[i].no = (markets[i].no || 0) + parseInt(amount);
-                    break;
-                }
-            }
-            localStorage.setItem("markets", JSON.stringify(markets));
-            tg.showAlert("✅ 已买入 " + amount + " No 份额！");
-            viewMarkets();
-        }
-
-        window.onload = viewMarkets;
-    </script>
-</body>
-</html>
