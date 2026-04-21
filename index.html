@@ -19,18 +19,26 @@
             background: #ffffff;
             color: #0088cc;
             border: none;
-            padding: 15px 25px;
-            margin: 10px;
+            padding: 12px 20px;
+            margin: 8px;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
         }
         .market {
             background: rgba(255,255,255,0.2);
             margin: 15px 0;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 12px;
+            text-align: left;
         }
+        .option {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        .yes { background: #4CAF50; color: white; }
+        .no { background: #f44336; color: white; }
     </style>
 </head>
 <body>
@@ -40,7 +48,7 @@
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
 
-    <div id="result" style="margin-top: 20px; font-size: 16px; line-height: 1.6;"></div>
+    <div id="result" style="margin-top: 20px;"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -48,50 +56,76 @@
         tg.expand();
 
         const user = tg.initDataUnsafe?.user;
-        if (user) {
-            document.getElementById('user').textContent = user.first_name;
-        }
+        if (user) document.getElementById('user').textContent = user.first_name;
+
+        let markets = JSON.parse(localStorage.getItem('markets') || '[]');
 
         function createMarket() {
-            const title = prompt("请输入预测标题，例如：\nSora 本月会向中国用户开放吗？");
-            
-            if (title && title.trim() !== "") {
-                let markets = JSON.parse(localStorage.getItem('markets') || '[]');
-                markets.push({
-                    id: Date.now(),
-                    title: title.trim(),
-                    creator: user ? user.first_name : "匿名",
-                    time: new Date().toLocaleString('zh-CN')
-                });
-                localStorage.setItem('markets', JSON.stringify(markets));
-
-                document.getElementById('result').innerHTML = 
-                    `✅ 发布成功！<br><b>\( {title}</b><br>时间： \){new Date().toLocaleString('zh-CN')}`;
-                
-                tg.showAlert("预测发布成功！");
-            } else {
+            const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
+            if (!title || !title.trim()) {
                 tg.showAlert("标题不能为空！");
+                return;
             }
+
+            const newMarket = {
+                id: Date.now(),
+                title: title.trim(),
+                creator: user ? user.first_name : "匿名",
+                time: new Date().toLocaleString('zh-CN'),
+                yes: 0,   // Yes 投注数量
+                no: 0     // No 投注数量
+            };
+
+            markets.push(newMarket);
+            localStorage.setItem('markets', JSON.stringify(markets));
+            
+            tg.showAlert("✅ 预测发布成功！");
+            viewMarkets();
         }
 
         function viewMarkets() {
-            let markets = JSON.parse(localStorage.getItem('markets') || '[]');
             let html = "<h2>当前预测市场：</h2>";
 
             if (markets.length === 0) {
                 html += "<p>还没有任何预测，快去发布第一个吧！</p >";
             } else {
                 markets.forEach(m => {
-                    html += `<div class="market">
-                        <b>${m.title}</b><br>
-                        发布者：${m.creator}<br>
-                        时间：${m.time}
-                    </div>`;
+                    const total = m.yes + m.no || 1;
+                    const yesPercent = Math.round((m.yes / total) * 100);
+                    const noPercent = Math.round((m.no / total) * 100);
+
+                    html += `
+                        <div class="market">
+                            <b>${m.title}</b><br>
+                            <small>发布者：${m.creator} | ${m.time}</small><br><br>
+                            
+                            <div class="option">
+                                <button class="yes" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesPercent}%)</button>
+                                <span>${m.yes} 人</span>
+                            </div>
+                            <div class="option">
+                                <button class="no" onclick="vote(\( {m.id}, 'no')">No ( \){noPercent}%)</button>
+                                <span>${m.no} 人</span>
+                            </div>
+                        </div>`;
                 });
             }
             document.getElementById('result').innerHTML = html;
         }
 
+        function vote(id, option) {
+            const market = markets.find(m => m.id === id);
+            if (!market) return;
+
+            if (option === 'yes') market.yes++;
+            else market.no++;
+
+            localStorage.setItem('markets', JSON.stringify(markets));
+            tg.showAlert(`你选择了 ${option.toUpperCase()}！`);
+            viewMarkets();
+        }
+
+        // 初始加载
         window.onload = viewMarkets;
     </script>
 </body>
