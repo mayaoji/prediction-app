@@ -66,26 +66,43 @@
                     html += '<div class="market">';
                     html += "<b>" + m.title + "</b><br>";
                     html += "<small>发布者：" + m.creator + " | " + m.time + "</small><br><br>";
-                    html += '<button class="yes-btn" onclick="vote(' + m.id + ', \'yes\')">Yes (' + yesP + '%)</button>';
-                    html += '<span style="margin-left:15px">' + (m.yes || 0) + ' 人</span><br><br>';
-                    html += '<button class="no-btn" onclick="vote(' + m.id + ', \'no\')">No (' + noP + '%)</button>';
-                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 人</span>';
+                    html += '<button class="yes-btn" onclick="buyYes(' + m.id + ')">Yes (' + yesP + '%)</button>';
+                    html += '<span style="margin-left:15px">' + (m.yes || 0) + ' 份额</span><br><br>';
+                    html += '<button class="no-btn" onclick="buyNo(' + m.id + ')">No (' + noP + '%)</button>';
+                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 份额</span>';
                     html += "</div>";
                 }
             }
             document.getElementById("result").innerHTML = html;
         }
 
-        function vote(id, option) {
+        function buyYes(id) {
+            const amount = prompt("请输入买入 Yes 的份额数量：", "10");
+            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
+            
             for (var i = 0; i < markets.length; i++) {
                 if (markets[i].id === id) {
-                    if (option === "yes") markets[i].yes = (markets[i].yes || 0) + 1;
-                    else markets[i].no = (markets[i].no || 0) + 1;
+                    markets[i].yes = (markets[i].yes || 0) + parseInt(amount);
                     break;
                 }
             }
             localStorage.setItem("markets", JSON.stringify(markets));
-            tg.showAlert("你选择了 " + option.toUpperCase() + "！");
+            tg.showAlert("✅ 已买入 " + amount + " Yes 份额！");
+            viewMarkets();
+        }
+
+        function buyNo(id) {
+            const amount = prompt("请输入买入 No 的份额数量：", "10");
+            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
+            
+            for (var i = 0; i < markets.length; i++) {
+                if (markets[i].id === id) {
+                    markets[i].no = (markets[i].no || 0) + parseInt(amount);
+                    break;
+                }
+            }
+            localStorage.setItem("markets", JSON.stringify(markets));
+            tg.showAlert("✅ 已买入 " + amount + " No 份额！");
             viewMarkets();
         }
 
