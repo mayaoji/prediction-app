@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预测市场</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(to bottom, #0088cc, #005f99);
+            color: white;
+            margin: 0;
+        }
+        h1 { font-size: 28px; }
+        p { font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 欢迎来到预测市场</h1>
+    <p>这是一个 Telegram Mini App 测试页面</p >
+    <p>你的名字：<span id="user">加载中...</span></p >
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            document.getElementById('user').textContent = user.first_name + " " + (user.last_name || "");
+        } else {
+            document.getElementById('user').textContent = "测试用户";
+        }
+
+        tg.showAlert("小程序启动成功！欢迎来到你的预测市场 👋");
+    </script>
+</body>
+</html>
