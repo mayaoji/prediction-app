@@ -52,12 +52,10 @@
         const user = tg.initDataUnsafe?.user || {};
         document.getElementById('user').textContent = user.first_name || "朋友";
 
-        const BIN_ID = "69e6f29c36566621a8d56b36";   // ← 你的 Bin ID
+        const BIN_ID = "69e6f29c36566621a8d56b36";
         const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
         let markets = [];
 
-        // 加载云端数据
         async function loadMarkets() {
             try {
                 const res = await fetch(API_URL + "/latest");
@@ -69,14 +67,13 @@
             viewMarkets();
         }
 
-        // 保存到云端
         async function saveMarkets() {
             try {
                 await fetch(API_URL, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-Master-Key": "YOUR_MASTER_KEY_HERE"   // 后面会教你怎么填
+                        "X-Master-Key": "请在这里替换成你的Master Key"
                     },
                     body: JSON.stringify({ markets: markets })
                 });
@@ -140,7 +137,6 @@
             viewMarkets();
         }
 
-        // 页面加载时自动加载云端数据
         window.onload = loadMarkets;
     </script>
 </body>
