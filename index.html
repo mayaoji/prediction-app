@@ -6,17 +6,40 @@
     <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {font-family:Arial,sans-serif;margin:0;padding:15px;background:linear-gradient(#0088cc,#005f99);color:white;text-align:center;}
-        h1 {font-size:26px;margin:15px 0;}
-        button {padding:14px 24px;margin:8px;border-radius:12px;font-size:17px;font-weight:bold;border:none;min-width:140px;}
-        .yes-btn {background:#4CAF50;color:white;}
-        .no-btn {background:#f44336;color:white;}
-        .market {background:rgba(255,255,255,0.25);margin:15px 0;padding:18px;border-radius:12px;text-align:left;}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background: linear-gradient(to bottom, #0088cc, #005f99);
+            color: white;
+            text-align: center;
+        }
+        h1 { font-size: 28px; margin: 20px 0 10px; }
+        p { margin: 5px 0 20px; }
+        button {
+            padding: 16px 28px;
+            margin: 10px 5px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            min-width: 160px;
+        }
+        .yes-btn { background: #4CAF50; color: white; }
+        .no-btn { background: #f44336; color: white; }
+        .market {
+            background: rgba(255,255,255,0.25);
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: left;
+        }
+        .info { font-size: 15px; opacity: 0.9; }
     </style>
 </head>
 <body>
     <h1>🚀 中国预测市场</h1>
-    <p>欢迎，<span id="user">朋友</span>！</p >
+    <p class="info">欢迎，<span id="user">朋友</span>！在这里预测未来</p >
 
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
@@ -35,7 +58,10 @@
 
         function createMarket() {
             const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
-            if (!title || title.trim() === "") return tg.showAlert("标题不能为空！");
+            if (!title || title.trim() === "") {
+                tg.showAlert("标题不能为空！");
+                return;
+            }
 
             markets.push({
                 id: Date.now(),
@@ -47,28 +73,29 @@
             });
 
             localStorage.setItem('markets', JSON.stringify(markets));
-            tg.showAlert("✅ 发布成功！");
+            tg.showAlert("✅ 预测发布成功！");
             viewMarkets();
         }
 
         function viewMarkets() {
             let html = "<h2>当前活跃预测：</h2>";
             if (markets.length === 0) {
-                html += "<p>还没有预测，快去发布第一个吧！</p >";
+                html += "<p>还没有任何预测，快去发布第一个吧！</p >";
             } else {
                 markets.forEach(m => {
                     const total = (m.yes || 0) + (m.no || 0) || 1;
                     const yesP = Math.round(((m.yes || 0) / total) * 100);
                     const noP = Math.round(((m.no || 0) / total) * 100);
 
-                    html += `<div class="market">
-                        <b>${m.title}</b><br>
-                        <small>发布者：${m.creator} | ${m.time}</small><br><br>
-                        <button class="yes-btn" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesP}%)</button>
-                        <span style="margin-left:15px">${m.yes || 0} 人</span><br><br>
-                        <button class="no-btn" onclick="vote(\( {m.id}, 'no')">No ( \){noP}%)</button>
-                        <span style="margin-left:15px">${m.no || 0} 人</span>
-                    </div>`;
+                    html += `
+                        <div class="market">
+                            <b>${m.title}</b><br>
+                            <small>发布者：${m.creator} | ${m.time}</small><br><br>
+                            <button class="yes-btn" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesP}%)</button>
+                            <span style="margin-left:15px">${m.yes || 0} 人</span><br><br>
+                            <button class="no-btn" onclick="vote(\( {m.id}, 'no')">No ( \){noP}%)</button>
+                            <span style="margin-left:15px">${m.no || 0} 人</span>
+                        </div>`;
                 });
             }
             document.getElementById('result').innerHTML = html;
@@ -77,6 +104,7 @@
         function vote(id, option) {
             const m = markets.find(item => item.id === id);
             if (!m) return;
+
             if (option === 'yes') m.yes = (m.yes || 0) + 1;
             else m.no = (m.no || 0) + 1;
 
