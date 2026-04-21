@@ -19,12 +19,11 @@
             background: #ffffff;
             color: #0088cc;
             border: none;
-            padding: 14px 20px;
+            padding: 14px 24px;
             margin: 8px 4px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 17px;
             font-weight: bold;
-            min-width: 120px;
         }
         .market {
             background: rgba(255,255,255,0.25);
@@ -44,7 +43,7 @@
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
 
-    <div id="result" style="margin-top: 30px; text-align: left;"></div>
+    <div id="result" style="margin-top: 30px;"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -86,20 +85,18 @@
                 html += "<p style='text-align:center'>还没有任何预测，快去发布第一个吧！</p >";
             } else {
                 markets.forEach(m => {
-                    const total = m.yes + m.no || 1;
-                    const yesPercent = Math.round((m.yes / total) * 100);
-                    const noPercent = Math.round((m.no / total) * 100);
+                    const total = (m.yes || 0) + (m.no || 0) || 1;
+                    const yesPercent = Math.round(((m.yes || 0) / total) * 100);
+                    const noPercent = Math.round(((m.no || 0) / total) * 100);
 
                     html += `
                         <div class="market">
                             <b>${m.title}</b><br>
                             <small>发布者：${m.creator} | ${m.time}</small><br><br>
-                            
                             <button class="yes-btn" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesPercent}%)</button>
-                            <span style="margin-left:10px">${m.yes} 人</span><br><br>
-                            
+                            <span style="margin-left:15px; font-size:16px">${m.yes || 0} 人</span><br><br>
                             <button class="no-btn" onclick="vote(\( {m.id}, 'no')">No ( \){noPercent}%)</button>
-                            <span style="margin-left:10px">${m.no} 人</span>
+                            <span style="margin-left:15px; font-size:16px">${m.no || 0} 人</span>
                         </div>`;
                 });
             }
@@ -110,15 +107,14 @@
             const market = markets.find(m => m.id === id);
             if (!market) return;
 
-            if (option === 'yes') market.yes++;
-            else market.no++;
+            if (option === 'yes') market.yes = (market.yes || 0) + 1;
+            else market.no = (market.no || 0) + 1;
 
             localStorage.setItem('markets', JSON.stringify(markets));
-            tg.showAlert(`你投了 ${option.toUpperCase()}！`);
-            viewMarkets();   // 刷新显示
+            tg.showAlert(`你选择了 ${option.toUpperCase()}！`);
+            viewMarkets();
         }
 
-        // 页面加载时显示
         window.onload = viewMarkets;
     </script>
 </body>
