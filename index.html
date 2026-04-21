@@ -33,14 +33,11 @@
             border-radius: 12px;
             text-align: left;
         }
-        .header { margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🚀 中国预测市场</h1>
-        <p>欢迎，<span id="user">朋友</span>！</p >
-    </div>
+    <h1>🚀 中国预测市场</h1>
+    <p>欢迎，<span id="user">朋友</span>！</p >
 
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
@@ -55,7 +52,36 @@
         const user = tg.initDataUnsafe?.user || {};
         document.getElementById('user').textContent = user.first_name || "朋友";
 
-        let markets = JSON.parse(localStorage.getItem('markets') || '[]');
+        const BIN_ID = "69e6f29c36566621a8d56b36";   // ← 你的 Bin ID
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        let markets = [];
+
+        // 加载云端数据
+        async function loadMarkets() {
+            try {
+                const res = await fetch(API_URL + "/latest");
+                if (res.ok) {
+                    const data = await res.json();
+                    markets = data.record.markets || [];
+                }
+            } catch(e) {}
+            viewMarkets();
+        }
+
+        // 保存到云端
+        async function saveMarkets() {
+            try {
+                await fetch(API_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": "YOUR_MASTER_KEY_HERE"   // 后面会教你怎么填
+                    },
+                    body: JSON.stringify({ markets: markets })
+                });
+            } catch(e) {}
+        }
 
         function createMarket() {
             const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
@@ -73,7 +99,7 @@
                 no: 0
             });
 
-            localStorage.setItem('markets', JSON.stringify(markets));
+            saveMarkets();
             tg.showAlert("✅ 发布成功！");
             viewMarkets();
         }
@@ -83,38 +109,39 @@
             if (markets.length === 0) {
                 html += "<p>还没有预测，快去发布第一个吧！</p >";
             } else {
-                markets.forEach(function(m) {
+                markets.forEach(m => {
                     const total = (m.yes || 0) + (m.no || 0) || 1;
                     const yesP = Math.round(((m.yes || 0) / total) * 100);
                     const noP = Math.round(((m.no || 0) / total) * 100);
 
-                    html += '<div class="market">';
-                    html += '<b>' + m.title + '</b><br>';
-                    html += '<small>发布者：' + m.creator + ' | ' + m.time + '</small><br><br>';
-                    html += '<button class="yes-btn" onclick="vote(' + m.id + ', \'yes\')">Yes (' + yesP + '%)</button>';
-                    html += '<span style="margin-left:15px">' + (m.yes || 0) + ' 人</span><br><br>';
-                    html += '<button class="no-btn" onclick="vote(' + m.id + ', \'no\')">No (' + noP + '%)</button>';
-                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 人</span>';
-                    html += '</div>';
+                    html += `
+                        <div class="market">
+                            <b>${m.title}</b><br>
+                            <small>发布者：${m.creator} | ${m.time}</small><br><br>
+                            <button class="yes-btn" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesP}%)</button>
+                            <span style="margin-left:15px">${m.yes || 0} 人</span><br><br>
+                            <button class="no-btn" onclick="vote(\( {m.id}, 'no')">No ( \){noP}%)</button>
+                            <span style="margin-left:15px">${m.no || 0} 人</span>
+                        </div>`;
                 });
             }
             document.getElementById('result').innerHTML = html;
         }
 
         function vote(id, option) {
-            for (var i = 0; i < markets.length; i++) {
-                if (markets[i].id === id) {
-                    if (option === 'yes') markets[i].yes = (markets[i].yes || 0) + 1;
-                    else markets[i].no = (markets[i].no || 0) + 1;
-                    break;
-                }
-            }
-            localStorage.setItem('markets', JSON.stringify(markets));
-            tg.showAlert('你选择了 ' + option.toUpperCase() + '！');
+            const m = markets.find(item => item.id === id);
+            if (!m) return;
+
+            if (option === 'yes') m.yes = (m.yes || 0) + 1;
+            else m.no = (m.no || 0) + 1;
+
+            saveMarkets();
+            tg.showAlert(`你选择了 ${option.toUpperCase()}！`);
             viewMarkets();
         }
 
-        window.onload = viewMarkets;
+        // 页面加载时自动加载云端数据
+        window.onload = loadMarkets;
     </script>
 </body>
 </html>
