@@ -91,4 +91,40 @@
                     html += '<button class="yes-btn" onclick="buyYes(' + m.id + ')">买入 Yes (' + yesP + '%)</button>';
                     html += '<span style="margin-left:15px">' + (m.yes || 0) + ' 份额</span><br><br>';
                     html += '<button class="no-btn" onclick="buyNo(' + m.id + ')">买入 No (' + noP + '%)</button>';
-                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 份额</
+                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 份额</span>';
+                    html += '</div>';
+                }
+            }
+            document.getElementById("result").innerHTML = html;
+        }
+
+        function buyYes(id) {
+            const amount = prompt("请输入买入 Yes 的份额数量：", "10");
+            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
+            for (var i = 0; i < markets.length; i++) {
+                if (markets[i].id === id) {
+                    markets[i].yes = (markets[i].yes || 0) + parseInt(amount);
+                    break;
+                }
+            }
+            tg.showAlert("✅ 已买入 Yes 份额！");
+            viewMarkets();
+        }
+
+        function buyNo(id) {
+            const amount = prompt("请输入买入 No 的份额数量：", "10");
+            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
+            for (var i = 0; i < markets.length; i++) {
+                if (markets[i].id === id) {
+                    markets[i].no = (markets[i].no || 0) + parseInt(amount);
+                    break;
+                }
+            }
+            tg.showAlert("✅ 已买入 No 份额！");
+            viewMarkets();
+        }
+
+        window.onload = viewMarkets;
+    </script>
+</body>
+</html>
