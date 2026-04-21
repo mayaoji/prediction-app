@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 15px;
             background: linear-gradient(to bottom, #0088cc, #005f99);
@@ -33,12 +33,11 @@
             border-radius: 16px;
             text-align: left;
         }
-        .info { font-size: 15px; opacity: 0.9; }
     </style>
 </head>
 <body>
     <h1>🚀 中国预测市场</h1>
-    <p class="info">欢迎，<span id="user">朋友</span>！ 点击按钮买入 Yes / No</p >
+    <p>欢迎，<span id="user">朋友</span>！ 点击按钮买入 Yes / No</p >
 
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
@@ -50,10 +49,10 @@
         tg.ready();
         tg.expand();
 
-        const user = tg.initDataUnsafe?.user || {};
-        document.getElementById('user').textContent = user.first_name || "朋友";
+        const user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {};
+        document.getElementById("user").textContent = user.first_name || "朋友";
 
-        let markets = JSON.parse(localStorage.getItem('markets') || '[]');
+        let markets = JSON.parse(localStorage.getItem("markets") || "[]");
 
         function createMarket() {
             const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
@@ -66,13 +65,13 @@
                 id: Date.now(),
                 title: title.trim(),
                 creator: user.first_name || "匿名",
-                time: new Date().toLocaleString('zh-CN'),
+                time: new Date().toLocaleString("zh-CN"),
                 yes: 0,
                 no: 0
             });
 
-            localStorage.setItem('markets', JSON.stringify(markets));
-            tg.showAlert("✅ 预测发布成功！");
+            localStorage.setItem("markets", JSON.stringify(markets));
+            tg.showAlert("✅ 发布成功！");
             viewMarkets();
         }
 
@@ -81,23 +80,23 @@
             if (markets.length === 0) {
                 html += "<p>还没有预测，快去发布第一个吧！</p >";
             } else {
-                markets.forEach(m => {
-                    const total = (m.yes || 0) + (m.no || 0) || 1;
-                    const yesP = Math.round(((m.yes || 0) / total) * 100);
-                    const noP = Math.round(((m.no || 0) / total) * 100);
+                for (var i = 0; i < markets.length; i++) {
+                    var m = markets[i];
+                    var total = (m.yes || 0) + (m.no || 0) || 1;
+                    var yesP = Math.round(((m.yes || 0) / total) * 100);
+                    var noP = Math.round(((m.no || 0) / total) * 100);
 
-                    html += `
-                        <div class="market">
-                            <b>${m.title}</b><br>
-                            <small>发布者：${m.creator} | ${m.time}</small><br><br>
-                            <button class="yes-btn" onclick="buyYes(\( {m.id})">买入 Yes ( \){yesP}%)</button>
-                            <span style="margin-left:12px">${m.yes || 0} 份额</span><br><br>
-                            <button class="no-btn" onclick="buyNo(\( {m.id})">买入 No ( \){noP}%)</button>
-                            <span style="margin-left:12px">${m.no || 0} 份额</span>
-                        </div>`;
-                });
+                    html += '<div class="market">';
+                    html += '<b>' + m.title + '</b><br>';
+                    html += '<small>发布者：' + m.creator + ' | ' + m.time + '</small><br><br>';
+                    html += '<button class="yes-btn" onclick="buyYes(' + m.id + ')">买入 Yes (' + yesP + '%)</button>';
+                    html += '<span style="margin-left:15px">' + (m.yes || 0) + ' 份额</span><br><br>';
+                    html += '<button class="no-btn" onclick="buyNo(' + m.id + ')">买入 No (' + noP + '%)</button>';
+                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 份额</span>';
+                    html += '</div>';
+                }
             }
-            document.getElementById('result').innerHTML = html;
+            document.getElementById("result").innerHTML = html;
         }
 
         function buyYes(id) {
@@ -106,13 +105,15 @@
                 tg.showAlert("请输入正确的数量！");
                 return;
             }
-            const m = markets.find(item => item.id === id);
-            if (m) {
-                m.yes = (m.yes || 0) + parseInt(amount);
-                localStorage.setItem('markets', JSON.stringify(markets));
-                tg.showAlert(`✅ 已买入 ${amount} 个 Yes 份额！`);
-                viewMarkets();
+            for (var i = 0; i < markets.length; i++) {
+                if (markets[i].id === id) {
+                    markets[i].yes = (markets[i].yes || 0) + parseInt(amount);
+                    break;
+                }
             }
+            localStorage.setItem("markets", JSON.stringify(markets));
+            tg.showAlert("✅ 已买入 Yes 份额！");
+            viewMarkets();
         }
 
         function buyNo(id) {
@@ -121,13 +122,15 @@
                 tg.showAlert("请输入正确的数量！");
                 return;
             }
-            const m = markets.find(item => item.id === id);
-            if (m) {
-                m.no = (m.no || 0) + parseInt(amount);
-                localStorage.setItem('markets', JSON.stringify(markets));
-                tg.showAlert(`✅ 已买入 ${amount} 个 No 份额！`);
-                viewMarkets();
+            for (var i = 0; i < markets.length; i++) {
+                if (markets[i].id === id) {
+                    markets[i].no = (markets[i].no || 0) + parseInt(amount);
+                    break;
+                }
             }
+            localStorage.setItem("markets", JSON.stringify(markets));
+            tg.showAlert("✅ 已买入 No 份额！");
+            viewMarkets();
         }
 
         window.onload = viewMarkets;
