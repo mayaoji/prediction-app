@@ -19,26 +19,22 @@
             background: #ffffff;
             color: #0088cc;
             border: none;
-            padding: 12px 20px;
-            margin: 8px;
+            padding: 14px 20px;
+            margin: 8px 4px;
             border-radius: 10px;
             font-size: 17px;
             font-weight: bold;
+            min-width: 120px;
         }
         .market {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.25);
             margin: 15px 0;
-            padding: 15px;
+            padding: 18px;
             border-radius: 12px;
             text-align: left;
         }
-        .option {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-        }
-        .yes { background: #4CAF50; color: white; }
-        .no { background: #f44336; color: white; }
+        .yes-btn { background: #4CAF50; color: white; }
+        .no-btn { background: #f44336; color: white; }
     </style>
 </head>
 <body>
@@ -48,7 +44,7 @@
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
 
-    <div id="result" style="margin-top: 20px;"></div>
+    <div id="result" style="margin-top: 30px; text-align: left;"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -62,7 +58,7 @@
 
         function createMarket() {
             const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
-            if (!title || !title.trim()) {
+            if (!title || title.trim() === "") {
                 tg.showAlert("标题不能为空！");
                 return;
             }
@@ -72,8 +68,8 @@
                 title: title.trim(),
                 creator: user ? user.first_name : "匿名",
                 time: new Date().toLocaleString('zh-CN'),
-                yes: 0,   // Yes 投注数量
-                no: 0     // No 投注数量
+                yes: 0,
+                no: 0
             };
 
             markets.push(newMarket);
@@ -84,10 +80,10 @@
         }
 
         function viewMarkets() {
-            let html = "<h2>当前预测市场：</h2>";
+            let html = "<h2>当前活跃预测：</h2>";
 
             if (markets.length === 0) {
-                html += "<p>还没有任何预测，快去发布第一个吧！</p >";
+                html += "<p style='text-align:center'>还没有任何预测，快去发布第一个吧！</p >";
             } else {
                 markets.forEach(m => {
                     const total = m.yes + m.no || 1;
@@ -99,7 +95,11 @@
                             <b>${m.title}</b><br>
                             <small>发布者：${m.creator} | ${m.time}</small><br><br>
                             
-                            https://mayaoji.github.io/prediction-app/
+                            <button class="yes-btn" onclick="vote(\( {m.id}, 'yes')">Yes ( \){yesPercent}%)</button>
+                            <span style="margin-left:10px">${m.yes} 人</span><br><br>
+                            
+                            <button class="no-btn" onclick="vote(\( {m.id}, 'no')">No ( \){noPercent}%)</button>
+                            <span style="margin-left:10px">${m.no} 人</span>
                         </div>`;
                 });
             }
@@ -114,11 +114,11 @@
             else market.no++;
 
             localStorage.setItem('markets', JSON.stringify(markets));
-            tg.showAlert(`你选择了 ${option.toUpperCase()}！`);
-            viewMarkets();
+            tg.showAlert(`你投了 ${option.toUpperCase()}！`);
+            viewMarkets();   // 刷新显示
         }
 
-        // 初始加载
+        // 页面加载时显示
         window.onload = viewMarkets;
     </script>
 </body>
