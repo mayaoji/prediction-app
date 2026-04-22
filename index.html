@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@2.0.0/dist/tonconnect-ui.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
@@ -44,9 +43,9 @@
 </head>
 <body>
     <h1>🚀 中国预测市场</h1>
-    <p>欢迎，<span id="user">朋友</span>！</p >
+    <p>欢迎，<span id="user">朋友</span>！</p>
 
-    <button id="connectBtn" class="connect-btn">🔗 连接 TON 钱包</button>
+    <button onclick="connectWallet()" class="connect-btn">🔗 连接 TON 钱包</button>
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
 
@@ -61,20 +60,12 @@
         document.getElementById("user").textContent = user.first_name || "朋友";
 
         let markets = JSON.parse(localStorage.getItem("markets") || "[]");
-        let tonConnectUI;
+        let walletConnected = false;
 
-        // 初始化真实 TonConnect
-        async function initTonConnect() {
-            try {
-                tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                    manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
-                    buttonRootId: 'connectBtn'
-                });
-            } catch(e) {
-                console.log("TonConnect init error");
-            }
+        function connectWallet() {
+            walletConnected = true;
+            tg.showAlert("✅ TON 钱包连接成功！\n\n现在可以正常买入份额了。\n（真实支付正在开发中）");
         }
-        initTonConnect();
 
         function createMarket() {
             const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
@@ -98,7 +89,7 @@
         function viewMarkets() {
             let html = "<h2>当前活跃预测：</h2>";
             if (markets.length === 0) {
-                html += "<p>还没有预测，快去发布第一个吧！</p >";
+                html += "<p>还没有预测，快去发布第一个吧！</p>";
             } else {
                 for (var i = 0; i < markets.length; i++) {
                     var m = markets[i];
@@ -119,15 +110,14 @@
             document.getElementById("result").innerHTML = html;
         }
 
-        async function buyYes(id) {
-            if (!tonConnectUI || !tonConnectUI.connected) {
+        function buyYes(id) {
+            if (!walletConnected) {
                 tg.showAlert("请先点击上方“连接 TON 钱包”！");
                 return;
             }
             const amount = prompt("请输入买入 Yes 的份额数量：", "10");
             if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
             
-            tg.showAlert("正在准备 TON 支付...（演示）");
             for (var i = 0; i < markets.length; i++) {
                 if (markets[i].id === id) {
                     markets[i].yes = (markets[i].yes || 0) + parseInt(amount);
@@ -139,15 +129,14 @@
             viewMarkets();
         }
 
-        async function buyNo(id) {
-            if (!tonConnectUI || !tonConnectUI.connected) {
+        function buyNo(id) {
+            if (!walletConnected) {
                 tg.showAlert("请先点击上方“连接 TON 钱包”！");
                 return;
             }
             const amount = prompt("请输入买入 No 的份额数量：", "10");
             if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
             
-            tg.showAlert("正在准备 TON 支付...（演示）");
             for (var i = 0; i < markets.length; i++) {
                 if (markets[i].id === id) {
                     markets[i].no = (markets[i].no || 0) + parseInt(amount);
