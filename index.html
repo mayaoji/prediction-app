@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中国预测市场 - 预测未来，一起下注</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -13,22 +14,10 @@
             text-align: center;
             line-height: 1.6;
         }
-        header {
-            padding: 40px 20px;
-        }
-        h1 {
-            font-size: 48px;
-            margin: 0 0 10px 0;
-        }
-        .subtitle {
-            font-size: 24px;
-            opacity: 0.9;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        header { padding: 40px 20px; }
+        h1 { font-size: 48px; margin: 0 0 10px 0; }
+        .subtitle { font-size: 24px; opacity: 0.9; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         button {
             padding: 16px 32px;
             margin: 15px;
@@ -38,14 +27,9 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-        .btn-secondary {
-            background: white;
-            color: #1e40af;
-        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-secondary { background: white; color: #1e40af; }
+        #wallet-info { margin: 20px 0; font-size: 18px; color: #90ee90; }
         .market-card {
             background: rgba(255,255,255,0.1);
             margin: 20px auto;
@@ -53,12 +37,6 @@
             border-radius: 16px;
             max-width: 800px;
             text-align: left;
-        }
-        footer {
-            margin-top: 80px;
-            padding: 30px;
-            font-size: 14px;
-            opacity: 0.7;
         }
     </style>
 </head>
@@ -69,31 +47,44 @@
     </header>
 
     <div class="container">
-        <button class="btn-primary" onclick="alert('TON 钱包连接功能开发中...')">🔗 连接 TON 钱包</button>
+        <div id="wallet-info">未连接钱包</div>
+        <button id="connect-btn" class="btn-primary">🔗 连接 TON 钱包</button>
         <button class="btn-secondary" onclick="createMarket()">📝 发布新预测</button>
         <button class="btn-secondary" onclick="viewMarkets()">📋 浏览所有预测</button>
 
         <div id="result" style="margin-top: 50px;"></div>
     </div>
 
-    <footer>
-        <p>中国预测市场 © 2026 | 数据仅供娱乐 · 理性参与</p >
-        <p>当前链接：https://symphonious-granita-a4d445.netlify.app</p >
-    </footer>
-
     <script>
         let markets = [];
+        let tonConnectUI = null;
+        let connectedWallet = null;
+
+        async function initTonConnect() {
+            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://symphonious-granita-a4d445.netlify.app/tonconnect-manifest.json',
+                buttonRootId: 'connect-btn'
+            });
+
+            tonConnectUI.onStatusChange(wallet => {
+                if (wallet) {
+                    connectedWallet = wallet;
+                    const address = wallet.account.address;
+                    document.getElementById('wallet-info').innerHTML = 
+                        `✅ 已连接 TON 钱包<br><small>\( {address.slice(0,6)}... \){address.slice(-4)}</small>`;
+                } else {
+                    connectedWallet = null;
+                    document.getElementById('wallet-info').innerHTML = '未连接钱包';
+                }
+            });
+        }
 
         function createMarket() {
-            const title = prompt("请输入预测标题（例如：2026年世界杯冠军是谁？）");
+            if (!connectedWallet) return alert("请先连接 TON 钱包！");
+            const title = prompt("请输入预测标题：");
             if (!title) return;
-            markets.push({
-                id: Date.now(),
-                title: title,
-                yes: 0,
-                no: 0
-            });
-            alert("✅ 预测发布成功！");
+            markets.push({ id: Date.now(), title: title, yes: 0, no: 0 });
+            alert("✅ 发布成功！");
             viewMarkets();
         }
 
@@ -106,9 +97,9 @@
                     html += `
                         <div class="market-card">
                             <h3>${m.title}</h3>
-                            <button onclick="buyYes(${m.id})" style="background:#22c55e;color:white;padding:12px 24px;border-radius:8px;">Yes</button> 
+                            <button onclick="buyYes(${m.id})" style="background:#22c55e;color:white;padding:12px 24px;border-radius:8px;margin:5px;">Yes</button> 
                             <span>${m.yes} 份额</span><br><br>
-                            <button onclick="buyNo(${m.id})" style="background:#ef4444;color:white;padding:12px 24px;border-radius:8px;">No</button> 
+                            <button onclick="buyNo(${m.id})" style="background:#ef4444;color:white;padding:12px 24px;border-radius:8px;margin:5px;">No</button> 
                             <span>${m.no} 份额</span>
                         </div>`;
                 });
@@ -117,27 +108,27 @@
         }
 
         function buyYes(id) {
-            const amount = prompt("买入 Yes 份额数量：", "10");
+            if (!connectedWallet) return alert("请先连接 TON 钱包！");
+            const amount = prompt("买入 Yes 数量：", "10");
             if (!amount || parseInt(amount) <= 0) return;
-            markets.forEach(m => {
-                if (m.id === id) m.yes += parseInt(amount);
-            });
-            alert("✅ 买入成功！");
+            markets.forEach(m => { if (m.id === id) m.yes += parseInt(amount); });
+            alert("✅ 买入 Yes 成功！");
             viewMarkets();
         }
 
         function buyNo(id) {
-            const amount = prompt("买入 No 份额数量：", "10");
+            if (!connectedWallet) return alert("请先连接 TON 钱包！");
+            const amount = prompt("买入 No 数量：", "10");
             if (!amount || parseInt(amount) <= 0) return;
-            markets.forEach(m => {
-                if (m.id === id) m.no += parseInt(amount);
-            });
-            alert("✅ 买入成功！");
+            markets.forEach(m => { if (m.id === id) m.no += parseInt(amount); });
+            alert("✅ 买入 No 成功！");
             viewMarkets();
         }
 
-        // 页面加载时显示
-        window.onload = viewMarkets;
+        window.onload = () => {
+            initTonConnect();
+            viewMarkets();
+        };
     </script>
 </body>
 </html>
