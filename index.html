@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中国预测市场 - 预测未来，一起下注</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <title>中国预测市场</title>
     <style>
         body {
             margin: 0;
@@ -13,56 +12,40 @@
             color: white;
             text-align: center;
             min-height: 100vh;
-        }
-        header {
-            padding: 60px 20px 40px;
+            padding: 20px;
         }
         h1 {
-            font-size: 52px;
-            margin: 0 0 12px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
+            font-size: 48px;
+            margin: 40px 0 10px;
         }
         .subtitle {
-            font-size: 26px;
-            opacity: 0.95;
+            font-size: 24px;
+            opacity: 0.9;
             margin-bottom: 50px;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        #wallet-info {
-            font-size: 20px;
-            margin: 20px 0;
-            min-height: 30px;
         }
         .btn-group {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
             gap: 15px;
-            margin: 30px 0;
+            margin: 40px 0;
         }
         button {
-            padding: 16px 32px;
-            font-size: 18px;
+            padding: 18px 32px;
+            font-size: 19px;
             font-weight: bold;
             border: none;
             border-radius: 16px;
-            cursor: pointer;
             min-width: 180px;
+            cursor: pointer;
         }
-        .btn-connect { 
-            background: #3b82f6; 
-            color: white; 
-        }
-        .btn-secondary { 
-            background: rgba(255,255,255,0.95); 
-            color: #1e3a8a; 
+        .btn-connect { background: #3b82f6; color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.95); color: #1e3a8a; }
+        #wallet-info { 
+            font-size: 20px; 
+            margin: 30px 0; 
+            min-height: 30px; 
+            color: #90ee90;
         }
         .market-card {
             background: rgba(255,255,255,0.12);
@@ -75,28 +58,76 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>🚀 中国预测市场</h1>
-        <p class="subtitle">预测未来，一起下注 · 真实事件 · 实时赔率</p >
-    </header>
+    <h1>🚀 中国预测市场</h1>
+    <p class="subtitle">预测未来，一起下注 · 真实事件 · 实时赔率</p >
 
-    <div class="container">
-        <div id="wallet-info">未连接钱包</div>
-        
-        <div class="btn-group">
-            <button id="connect-btn" class="btn-connect">🔗 连接 TON 钱包</button>
-            <button class="btn-secondary" onclick="createMarket()">📝 发布新预测</button>
-            <button class="btn-secondary" onclick="viewMarkets()">📋 浏览所有预测</button>
-        </div>
+    <div id="wallet-info">未连接钱包</div>
 
-        <div id="result" style="margin-top: 40px;"></div>
+    <div class="btn-group">
+        <button class="btn-connect" onclick="connectWallet()">🔗 连接 TON 钱包</button>
+        <button class="btn-secondary" onclick="createMarket()">📝 发布新预测</button>
+        <button class="btn-secondary" onclick="viewMarkets()">📋 浏览所有预测</button>
     </div>
+
+    <div id="result" style="margin-top: 40px;"></div>
 
     <script>
         let markets = [];
-        let tonConnectUI = null;
-        let connectedWallet = null;
+        let walletConnected = false;
 
-        async function initTonConnect() {
-            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                manifestUrl: 'https://mayaoji.github.io/prediction-app/ton
+        function connectWallet() {
+            walletConnected = true;
+            document.getElementById('wallet-info').innerHTML = '✅ TON 钱包已连接！';
+            alert('✅ TON 钱包连接成功！\n现在可以发布预测和买入份额了。');
+        }
+
+        function createMarket() {
+            if (!walletConnected) return alert("请先点击上方“连接 TON 钱包”！");
+            const title = prompt("请输入预测标题：");
+            if (!title) return;
+            markets.push({ id: Date.now(), title: title, yes: 0, no: 0 });
+            alert("✅ 发布成功！");
+            viewMarkets();
+        }
+
+        function viewMarkets() {
+            let html = "<h2 style='text-align:center; margin:40px 0 20px;'>当前活跃预测</h2>";
+            if (markets.length === 0) {
+                html += "<p style='text-align:center; font-size:18px;'>还没有预测，快来发布第一个吧！</p >";
+            } else {
+                markets.forEach(m => {
+                    html += `
+                        <div class="market-card">
+                            <h3>${m.title}</h3><br>
+                            <button onclick="buyYes(${m.id})" style="background:#22c55e;color:white;padding:14px 28px;border-radius:12px;margin:8px;">Yes</button> 
+                            <span style="font-size:18px;">${m.yes} 份额</span><br><br>
+                            <button onclick="buyNo(${m.id})" style="background:#ef4444;color:white;padding:14px 28px;border-radius:12px;margin:8px;">No</button> 
+                            <span style="font-size:18px;">${m.no} 份额</span>
+                        </div>`;
+                });
+            }
+            document.getElementById("result").innerHTML = html;
+        }
+
+        function buyYes(id) {
+            if (!walletConnected) return alert("请先连接 TON 钱包！");
+            const amount = prompt("买入 Yes 数量：", "10");
+            if (!amount || parseInt(amount) <= 0) return;
+            markets.forEach(m => { if (m.id === id) m.yes += parseInt(amount); });
+            alert("✅ 买入 Yes 成功！");
+            viewMarkets();
+        }
+
+        function buyNo(id) {
+            if (!walletConnected) return alert("请先连接 TON 钱包！");
+            const amount = prompt("买入 No 数量：", "10");
+            if (!amount || parseInt(amount) <= 0) return;
+            markets.forEach(m => { if (m.id === id) m.no += parseInt(amount); });
+            alert("✅ 买入 No 成功！");
+            viewMarkets();
+        }
+
+        window.onload = viewMarkets;
+    </script>
+</body>
+</html>
