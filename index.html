@@ -35,9 +35,10 @@
             gap: 15px;
             margin: 30px 0;
         }
-        /* TON Connect 按钮会自动渲染到这个容器 */
+        /* TON Connect 按钮容器 */
         #connect-btn-root {
             display: inline-block;
+            margin-bottom: 10px;
         }
         .btn-secondary {
             padding: 12px 24px;
@@ -55,7 +56,7 @@
         }
         #wallet-info { 
             font-size: 16px; 
-            margin: 20px 0; 
+            margin: 10px 0 20px 0; 
             color: #90ee90;
             font-family: monospace;
         }
@@ -77,8 +78,8 @@
             gap: 10px;
             margin-top: 15px;
         }
-        .btn-yes { background: #22c55e; border: none; color: white; padding: 10px; border-radius: 8px; flex: 1; cursor: pointer; }
-        .btn-no { background: #ef4444; border: none; color: white; padding: 10px; border-radius: 8px; flex: 1; cursor: pointer; }
+        .btn-yes { background: #22c55e; border: none; color: white; padding: 12px; border-radius: 8px; flex: 1; cursor: pointer; font-weight: bold; }
+        .btn-no { background: #ef4444; border: none; color: white; padding: 12px; border-radius: 8px; flex: 1; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -91,53 +92,73 @@
 
     <div class="btn-group">
         <button class="btn-secondary" onclick="createMarket()">📝 发起新预测</button>
-        <button class="btn-secondary" onclick="viewMarkets()">📋 刷新列表</button>
+        <button class="btn-secondary" onclick="renderMarkets()">📋 刷新列表</button>
     </div>
 
     <div id="result" class="market-list">
         </div>
 
     <script>
-                // --- 1. 初始化 TON Connect UI ---
+        // --- 1. 配置信息 ---
+        // 您的 OKX 收款地址
+        const MY_OKX_ADDRESS = "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y"; 
+        const SERVICE_FEE = 0.1; // 平台固定服务费 (TON)
+
+        // --- 2. 初始化 TON Connect UI ---
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
             buttonRootId: 'connect-btn-root'
         });
 
-        // --- 2. 核心配置：你的 OKX 收款地址 ---
-        const MY_OKX_ADDRESS = "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y"; 
-        const SERVICE_FEE = 0.1; // 平台收取的固定服务费 (TON)
-
-        // 模拟初始数据
+        // 初始数据
         let markets = [
             { id: 1, topic: "2026年 BTC 价格会超过 $150,000 吗？", pool: 15.5 },
-            { id: 2, topic: "下周广州会下雨吗？", pool: 8.0 }
+            { id: 2, topic: "TON 币价本月会突破 $10 吗？", pool: 42.0 }
         ];
 
-        // 监听钱包连接状态
+        // --- 3. 监听钱包连接 ---
         tonConnectUI.onStatusChange(wallet => {
             const infoDiv = document.getElementById('wallet-info');
             if (wallet) {
                 const addr = wallet.account.address;
                 const displayAddr = addr.substring(0, 6) + "..." + addr.substring(addr.length - 4);
-                infoDiv.innerText = `已连接钱包: ${displayAddr}`;
+                infoDiv.innerText = `已连接: ${displayAddr}`;
             } else {
                 infoDiv.innerText = "未连接钱包";
             }
         });
 
-        // --- 3. 发布预测 (Prediction 模式：收钱 + 创建) ---
+        // --- 4. 渲染市场列表 ---
+        function renderMarkets() {
+            const resultDiv = document.getElementById('result');
+            if (markets.length === 0) {
+                resultDiv.innerHTML = "<p>暂无活跃预测项目</p >";
+                return;
+            }
+
+            resultDiv.innerHTML = markets.map(m => `
+                <div class="market-card">
+                    <div style="float:right; font-weight:bold; color:#facc15;">💰 池子: ${m.pool} TON</div>
+                    <h3 style="margin-top:0">${m.topic}</h3>
+                    <div class="bet-buttons">
+                        <button class="btn-yes" onclick="handleBet('${m.topic}', 'YES')">押注 YES</button>
+                        <button class="btn-no" onclick="handleBet('${m.topic}', 'NO')">押注 NO</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- 5. 发起新预测 (支付逻辑) ---
         async function createMarket() {
             if (!tonConnectUI.connected) {
-                alert("请先连接钱包");
+                alert("请先点击上方按钮连接钱包");
                 return;
             }
             const topic = prompt("请输入预测话题:");
             if (!topic) return;
-            const liquidity = prompt("初始注入奖池金额 (单位: TON):", "1");
+            const liquidity = prompt("初始奖池金额 (TON):", "1");
             if (!liquidity || isNaN(liquidity)) return;
 
-            // 计算总金额：奖池 + 服务费
             const totalAmount = parseFloat(liquidity) + SERVICE_FEE;
             const nanoAmount = (totalAmount * 1000000000).toString();
 
@@ -150,41 +171,24 @@
             };
 
             try {
-                alert(`即将发布预测：\n话题：${topic}\n支付：${totalAmount} TON\n(含服务费 ${SERVICE_FEE} 及奖池 ${liquidity})`);
+                alert(`请确认支付：\n服务费：${SERVICE_FEE} TON\n奖池金：${liquidity} TON\n总计：${totalAmount.toFixed(2)} TON`);
                 await tonConnectUI.sendTransaction(transaction);
                 
-                // 成功后加入列表
-                const newMarket = { id: Date.now(), topic: topic, pool: liquidity };
-                markets.unshift(newMarket);
+                markets.unshift({ id: Date.now(), topic: topic, pool: liquidity });
                 renderMarkets();
-                alert("🎉 发布成功！资金已进入您的 OKX 钱包。");
+                alert("🎉 发布成功！资金已汇入收款账户。");
             } catch (e) {
-                alert("支付失败，无法发布。");
+                alert("支付取消或失败");
             }
         }
 
-        // --- 4. 渲染市场列表 ---
-        function renderMarkets() {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = markets.map(m => `
-                <div class="market-card">
-                    <div style="float:right; font-weight:bold; color:#90ee90;">💰 池子: ${m.pool} TON</div>
-                    <h3 style="margin-top:0;">${m.topic}</h3>
-                    <div class="bet-buttons">
-                        <button class="btn-yes" onclick="handleBet('${m.topic}', 'YES')">押注 YES</button>
-                        <button class="btn-no" onclick="handleBet('${m.topic}', 'NO')">押注 NO</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // --- 5. 处理下注 (收钱) ---
+        // --- 6. 处理押注 ---
         async function handleBet(topic, choice) {
             if (!tonConnectUI.connected) {
                 alert("请先连接钱包");
                 return;
             }
-            const amount = prompt(`你要买入 [${choice}] 多少金额 (TON)?`, "1");
+            const amount = prompt(`你要为 [${topic}] 押注 [${choice}] 多少 TON?`, "1");
             if (!amount || isNaN(amount)) return;
 
             const nanoAmount = (parseFloat(amount) * 1000000000).toString();
@@ -198,12 +202,14 @@
 
             try {
                 await tonConnectUI.sendTransaction(transaction);
-                alert(`下注成功！${amount} TON 已转入平台收款账户。`);
+                alert("押注成功！请保留交易截图。");
             } catch (e) {
-                alert("下注失败。");
+                alert("支付失败");
             }
         }
 
         // 初始渲染
         renderMarkets();
-        function viewMarkets() { renderMarkets(); }
+    </script>
+</body>
+</html>
