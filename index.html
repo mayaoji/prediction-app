@@ -7,24 +7,26 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background: linear-gradient(to bottom, #0088cc, #005f99);
             color: white;
             text-align: center;
         }
-        h1 { font-size: 28px; margin: 20px 0; }
+        h1 { font-size: 32px; margin: 20px 0 10px; }
+        p { font-size: 18px; margin-bottom: 25px; }
         button {
-            padding: 16px 28px;
-            margin: 10px 5px;
-            border-radius: 12px;
+            padding: 18px 24px;
+            margin: 12px 5px;
+            border-radius: 16px;
             font-size: 18px;
             font-weight: bold;
             border: none;
             width: 90%;
-            max-width: 320px;
+            max-width: 340px;
         }
+        .connect-btn { background: #1a73e8; color: white; }
         .yes-btn { background: #4CAF50; color: white; }
         .no-btn { background: #f44336; color: white; }
         .market {
@@ -40,7 +42,7 @@
     <h1>🚀 中国预测市场</h1>
     <p>欢迎，<span id="user">朋友</span>！</p >
 
-    <button onclick="connectWallet()">🔗 连接 TON 钱包</button>
+    <button onclick="connectWallet()" class="connect-btn">🔗 连接 TON 钱包</button>
     <button onclick="createMarket()">📝 发布新预测</button>
     <button onclick="viewMarkets()">📋 查看所有预测</button>
 
