@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中国预测市场</title>
+    <title>中国预测市场 - TON</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         body {
@@ -16,7 +16,7 @@
             padding: 20px;
         }
         h1 {
-            font-size: 48px;
+            font-size: 42px;
             margin: 40px 0 10px;
             display: flex;
             align-items: center;
@@ -24,58 +24,177 @@
             gap: 15px;
         }
         .subtitle {
-            font-size: 24px;
-            opacity: 0.9;
-            margin-bottom: 50px;
+            font-size: 20px;
+            opacity: 0.8;
+            margin-bottom: 40px;
         }
         .btn-group {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
             gap: 15px;
-            margin: 40px 0;
+            margin: 30px 0;
         }
-        button {
-            padding: 18px 32px;
-            font-size: 19px;
+        /* TON Connect 按钮会自动渲染到这个容器 */
+        #connect-btn-root {
+            display: inline-block;
+        }
+        .btn-secondary {
+            padding: 12px 24px;
+            font-size: 16px;
             font-weight: bold;
-            border: none;
-            border-radius: 16px;
-            min-width: 180px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
         }
-        .btn-connect { background: #3b82f6; color: white; }
-        .btn-secondary { background: rgba(255,255,255,0.95); color: #1e3a8a; }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
         #wallet-info { 
-            font-size: 20px; 
-            margin: 30px 0; 
-            min-height: 30px; 
+            font-size: 16px; 
+            margin: 20px 0; 
             color: #90ee90;
+            font-family: monospace;
+        }
+        .market-list {
+            max-width: 800px;
+            margin: 0 auto;
         }
         .market-card {
-            background: rgba(255,255,255,0.12);
-            margin: 25px auto;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 800px;
+            background: rgba(255,255,255,0.1);
+            margin: 15px 0;
+            padding: 25px;
+            border-radius: 16px;
             text-align: left;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
         }
+        .bet-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-yes { background: #22c55e; border: none; color: white; padding: 10px; border-radius: 8px; flex: 1; cursor: pointer; }
+        .btn-no { background: #ef4444; border: none; color: white; padding: 10px; border-radius: 8px; flex: 1; cursor: pointer; }
     </style>
 </head>
 <body>
-    <h1>🚀 中国预测市场</h1>
-    <p class="subtitle">预测未来，一起下注 · 真实事件 · 实时赔率</p >
 
+    <h1>🚀 中国预测市场</h1>
+    <p class="subtitle">基于 TON 区块链 · 透明公正 · 实时结算</p >
+
+    <div id="connect-btn-root"></div>
     <div id="wallet-info">未连接钱包</div>
 
     <div class="btn-group">
-        <button id="connect-btn" class="btn-connect">🔗 连接 TON 钱包</button>
-        <button class="btn-secondary" onclick="createMarket()">📝 发布新预测</button>
-        <button class="btn-secondary" onclick="viewMarkets()">📋 浏览所有预测</button>
+        <button class="btn-secondary" onclick="createMarket()">📝 发起新预测</button>
+        <button class="btn-secondary" onclick="viewMarkets()">📋 刷新列表</button>
     </div>
 
-    <div id="result" style="margin-top: 40px;"></div>
+    <div id="result" class="market-list">
+        </div>
 
     <script>
-        let markets = [];
-        let tonConnectUI = null;
-        let connectedWallet = null;
+        // 1. 初始化 TON Connect UI
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react/tonconnect-manifest.json',
+            buttonRootId: 'connect-btn-root'
+        });
+
+        let markets = [
+            { id: 1, topic: "2026年 BTC 价格会超过 $150,000 吗？", yes: 65, no: 35 },
+            { id: 2, topic: "下周上海会下雨吗？", yes: 20, no: 80 }
+        ];
+
+        // 2. 监听钱包连接状态
+        tonConnectUI.onStatusChange(wallet => {
+            const infoDiv = document.getElementById('wallet-info');
+            if (wallet) {
+                const addr = wallet.account.address;
+                const displayAddr = addr.substring(0, 6) + "..." + addr.substring(addr.length - 4);
+                infoDiv.innerText = `已连接钱包: ${displayAddr}`;
+                console.log("Wallet connected:", wallet);
+            } else {
+                infoDiv.innerText = "未连接钱包";
+            }
+        });
+
+        // 3. 发布预测
+        function createMarket() {
+            if (!tonConnectUI.connected) {
+                alert("请先点击上方按钮连接钱包");
+                return;
+            }
+            const topic = prompt("请输入你想发起的预测话题：");
+            if (topic) {
+                const newMarket = {
+                    id: Date.now(),
+                    topic: topic,
+                    yes: 50,
+                    no: 50
+                };
+                markets.unshift(newMarket); // 加到开头
+                renderMarkets();
+            }
+        }
+
+        // 4. 渲染市场列表
+        function renderMarkets() {
+            const resultDiv = document.getElementById('result');
+            if (markets.length === 0) {
+                resultDiv.innerHTML = "<p>目前没有活跃的预测项目</p >";
+                return;
+            }
+
+            resultDiv.innerHTML = markets.map(m => `
+                <div class="market-card">
+                    <h3 style="margin-top:0">${m.topic}</h3>
+                    <div style="font-size: 14px; color: #ccc;">
+                        胜率预测: <span style="color:#22c55e">Yes ${m.yes}%</span> / <span style="color:#ef4444">No ${m.no}%</span>
+                    </div>
+                    <div class="bet-buttons">
+                        <button class="btn-yes" onclick="handleBet('${m.topic}', 'YES')">押 注 YES</button>
+                        <button class="btn-no" onclick="handleBet('${m.topic}', 'NO')">押 注 NO</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 5. 处理下注（模拟交易）
+        async function handleBet(topic, choice) {
+            if (!tonConnectUI.connected) {
+                alert("请先连接钱包");
+                return;
+            }
+
+            // 这里演示发起一笔 0.1 TON 的交易
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 60, // 60秒过期
+                messages: [
+                    {
+                        address: "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", // 接收地址(此处为示例)
+                        amount: "100000000" // 0.1 TON (单位是 nanoTON)
+                    }
+                ]
+            };
+
+            try {
+                alert(`正在为 [${topic}] 的 ${choice} 选项发起交易确认...`);
+                await tonConnectUI.sendTransaction(transaction);
+                alert("交易成功！你的预测已记录在区块链上。");
+            } catch (e) {
+                console.error(e);
+                alert("交易取消或失败。");
+            }
+        }
+
+        // 初始渲染
+        renderMarkets();
+        function viewMarkets() { renderMarkets(); }
+
+    </script>
+</body>
+</html>
