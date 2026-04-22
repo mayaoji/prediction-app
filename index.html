@@ -1,1 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国预测市场</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0088cc, #005f99);
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 36px;
+            margin: 30px 0 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        p { 
+            font-size: 20px; 
+            margin-bottom: 35px; 
+            opacity: 0.95;
+        }
+        button {
+            padding: 20px 30px;
+            margin: 12px 8px;
+            border-radius: 20px;
+            font-size: 19px;
+            font-weight: bold;
+            border: none;
+            width: 92%;
+            max-width: 380px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .connect-btn { 
+            background: linear-gradient(#1a73e8, #1557b0); 
+            color: white; 
+        }
+        .yes-btn { background: #4CAF50; color: white; }
+        .no-btn { background: #f44336; color: white; }
+        .market {
+            background: rgba(255,255,255,0.25);
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 24px;
+            text-align: left;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .market b {
+            font-size: 19px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 中国预测市场</h1>
+    <p>欢迎，<span id="user">朋友</span>！</p >
 
+    <button onclick="connectWallet()" class="connect-btn">🔗 连接 TON 钱包</button>
+    <button onclick="createMarket()">📝 发布新预测</button>
+    <button onclick="viewMarkets()">📋 查看所有预测</button>
+
+    <div id="result" style="margin-top:40px;"></div>
+
+    <script>
+        let markets = JSON.parse(localStorage.getItem("markets") || "[]");
+        let walletConnected = false;
+
+        function connectWallet() {
+            walletConnected = true;
+            alert("✅ TON 钱包已连接！\n\n现在可以正常买入份额了。\n（真实支付开发中）");
+        }
+
+        function createMarket() {
+            const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
+            if (!title || title.trim() === "") {
+                alert("标题不能为空！");
+                return;
+            }
+            markets.push({
+                id: Date.now(),
+                title: title.trim(),
+                creator: "用户",
+                time: new Date().toLocaleString("zh-CN"),
+                yes: 0,
+                no: 0
+            });
+            localStorage.setItem("markets", JSON.stringify(markets));
+            alert("✅ 发布成功！");
+            viewMarkets();
+        }
+
+        function viewMarkets() {
+            let html = "<h2>当前活跃预测：</h2>";
+            if (markets.length === 0) {
+                html += "<p>还没有预测，快去发布第一个吧！</p >";
+            } else {
+                for (var i = 0; i < markets.length; i++) {
+                    var m = markets[i];
+                    var total = (m.yes || 0) + (m.no || 0) || 1;
+                    var yesP = Math.round(((m.yes
