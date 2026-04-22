@@ -1,1 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国预测市场</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, #0088cc, #005f99);
+            color: white;
+            text-align: center;
+        }
+        h1 { font-size: 32px; margin: 30px 0 15px; }
+        button {
+            display: block;
+            width: 90%;
+            max-width: 340px;
+            margin: 15px auto;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 16px;
+        }
+        .connect { background: #1a73e8; color: white; }
+        .publish { background: #ffffff; color: #0088cc; }
+        .view { background: #ffffff; color: #0088cc; }
+        .yes { background: #4CAF50; color: white; }
+        .no { background: #f44336; color: white; }
+        .market {
+            background: rgba(255,255,255,0.25);
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 中国预测市场</h1>
+    <p>欢迎，朋友！</p >
 
+    <button class="connect" onclick="connectWallet()">🔗 连接 TON 钱包</button>
+    <button class="publish" onclick="createMarket()">📝 发布新预测</button>
+    <button class="view" onclick="viewMarkets()">📋 查看所有预测</button>
+
+    <div id="result" style="margin-top:30px; text-align:left;"></div>
+
+    <script>
+        let markets = JSON.parse(localStorage.getItem("markets") || "[]");
+        let walletConnected = false;
+
+        function connectWallet() {
+            walletConnected = true;
+            alert
