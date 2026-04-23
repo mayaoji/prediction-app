@@ -1,47 +1,55 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>预测市场 - 数据共享打通版</title>
+    <title>中国预测市场</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background:#0e1621; color:white; font-family:sans-serif; text-align:center; padding:20px; }
-        .card { background:#17212b; padding:15px; border-radius:12px; margin:10px auto; max-width:400px; text-align:left; border-left:4px solid #248bcf; }
+        body { background:#0e1621; color:white; font-family:sans-serif; text-align:center; padding:20px; line-height:1.6; }
+        h1 { font-size: 36px; margin: 20px 0 10px; }
+        button { background:#248bcf; color:white; border:none; padding:16px; width:100%; max-width:400px; border-radius:12px; font-weight:bold; font-size:17px; margin:12px auto; display:block; cursor:pointer; }
+        .card { background:#17212b; padding:18px; border-radius:12px; margin:15px auto; max-width:400px; text-align:left; border-left:5px solid #248bcf; }
+        #wallet-info { margin:20px 0; font-size:18px; color:#90ee90; }
     </style>
 </head>
 <body>
     <h1>🚀 中国预测市场</h1>
-    <div id="status" style="color:#81b3d2; font-size:12px;">正在连接云端...</div>
-    <div id="list"></div>
+    
+    <div id="ton-connect-button" style="margin:25px auto; min-height:50px;"></div>
+    <div id="wallet-info">未连接钱包</div>
+
+    <div style="max-width:400px; margin:0 auto;">
+        <button onclick="publish()">📝 发起新预测 (0.1 TON)</button>
+    </div>
+
+    <div id="list" style="margin-top:30px; max-width:400px; margin-left:auto; margin-right:auto;">
+        正在加载...
+    </div>
 
     <script>
         const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
+        
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        async function init() {
-            try {
-                // 强制使用不带缓存的请求
-                const client = supabase.createClient(SB_URL, SB_KEY, {
-                    auth: { persistSession: false }
-                });
+        let tonConnectUI = null;
 
-                const { data, error } = await client.from('markets').select('*').order('id', { ascending: false });
+        async function initTonConnect() {
+            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
+                buttonRootId: 'ton-connect-button'
+            });
+        }
 
-                if (error) throw error;
-
-                document.getElementById('status').innerText = "✅ 数据同步成功";
-                document.getElementById('list').innerHTML = data.map(m => `
+        async function load() {
+            const { data } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
+            const listDiv = document.getElementById('list');
+            if (data && data.length > 0) {
+                listDiv.innerHTML = data.map(m => `
                     <div class="card">
                         <strong>${m.topic}</strong><br>
-                        <small>💰 奖池: ${m.pool} TON</small>
+                        <small style="color:#81b3d2;">💰 奖池: ${m.pool} TON</small>
                     </div>
                 `).join('');
-            } catch (e) {
-                document.getElementById('status').innerHTML = `<b style="color:red;">连接失败: ${e.message}</b><br>请检查Supabase后台设置`;
-            }
-        }
-        window.onload = init;
-    </script>
-</body>
-</html>
