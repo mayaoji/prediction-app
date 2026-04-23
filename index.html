@@ -3,55 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>中国预测市场 - 调试版</title>
+    <title>中国预测市场 - 数据检查版</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background:#0e1621; color:white; font-family:sans-serif; text-align:center; padding:20px; }
         .container { max-width: 400px; margin: 0 auto; }
-        h1 { font-size: 28px; margin-bottom: 30px; }
         .market-card {
             background:#17212b; padding:18px; border-radius:12px; margin-bottom:15px; 
-            text-align:left; border-left: 5px solid #248bcf; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            text-align:left; border-left: 5px solid #248bcf;
         }
-        .market-card strong { font-size: 18px; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🚀 中国预测市场</h1>
+        <div id="status" style="font-size:12px; color:#5a6e82; margin-bottom:10px;">连接状态：检查中...</div>
         <div id="market-list">
-            <p style="color:#5a6e82;">正在连接数据库，请稍候...</p >
+            <p>🔄 正在读取云端数据...</p >
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://kfalyawduveuuttniun.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function fetchMarkets() {
+        
+        async function start() {
+            const listDiv = document.getElementById('market-list');
+            const statusDiv = document.getElementById('status');
+            
             try {
-                const { data, error } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
-                const listDiv = document.getElementById('market-list');
+                // 1. 初始化
+                const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                statusDiv.innerText = "连接状态：已发起请求";
+
+                // 2. 查询
+                const { data, error } = await supabaseClient.from('markets').select('*');
+
                 if (error) {
-                    listDiv.innerHTML = `<p style="color:red;">读取失败: ${error.message}</p >`;
+                    statusDiv.innerText = "连接状态：数据库拒绝访问";
+                    listDiv.innerHTML = `<p style="color:red;">错误详情: ${error.message}</p >`;
                     return;
                 }
+
                 if (data && data.length > 0) {
+                    statusDiv.innerText = "连接状态：数据同步成功";
                     listDiv.innerHTML = data.map(item => `
                         <div class="market-card">
-                            <strong>${item.topic}</strong>
-                            <small style="color:#81b3d2;">💰 奖池: ${item.pool || 0} TON</small>
+                            <strong>${item.topic}</strong><br>
+                            <small style="color:#81b3d2;">💰 奖池: ${item.pool || 0.1} TON</small>
                         </div>
                     `).join('');
                 } else {
-                    listDiv.innerHTML = `<p>数据库已连接，但目前没有数据。</p >`;
+                    statusDiv.innerText = "连接状态：库内无数据";
+                    listDiv.innerHTML = `<p>连接成功，但表是空的。</p >`;
                 }
             } catch (err) {
-                document.getElementById('market-list').innerHTML = `<p>连接异常</p >`;
+                statusDiv.innerText = "连接状态：程序崩溃";
+                listDiv.innerHTML = `<p style="color:red;">错误: ${err.message}</p >`;
             }
         }
-        window.onload = fetchMarkets;
+
+        // 确保页面加载完再跑
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', start);
+        } else {
+            start();
+        }
     </script>
 </body>
 </html>
