@@ -2,46 +2,49 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>预测市场 - 电脑直连版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase 测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background:#0e1621; color:white; padding:40px; font-family:sans-serif; text-align:center; line-height:1.8; }
+        #result { background:#17212b; padding:30px; border-radius:12px; margin:30px auto; max-width:600px; word-break:break-all; }
+    </style>
 </head>
-<body style="background:#0e1621; color:white; text-align:center; padding:50px; font-family:sans-serif;">
-    <h2>🚀 预测市场 (原始请求测试)</h2>
-    <div id="status">正在尝试跳过权限拦截...</div>
-    <div id="output" style="margin-top:20px; text-align:left; background:#17212b; padding:20px; display:inline-block; border-radius:10px;"></div>
+<body>
+    <h1>🔍 Supabase 数据共享测试</h1>
+    <div id="result">正在测试连接...</div>
 
     <script>
-        // 核心方案：不再使用 SDK，改用带 Mode: No-Cors 的原始请求
-        const URL = 'https://kfalyawduveuuttniun.supabase.co/rest/v1/markets';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
+        const supabase = supabase.createClient(
+            'https://kfalyawduveuuttniun.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0'
+        );
 
-        async function fastConnect() {
-            const out = document.getElementById('output');
+        async function test() {
+            const resultDiv = document.getElementById('result');
             try {
-                const res = await fetch(URL + '?select=*', {
-                    method: 'GET',
-                    headers: {
-                        'apikey': KEY,
-                        'Authorization': 'Bearer ' + KEY,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                resultDiv.innerHTML = "正在查询数据...";
+                
+                const { data, error } = await supabase
+                    .from('markets')
+                    .select('*')
+                    .order('id', { ascending: false })
+                    .limit(10);
 
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error('数据库反馈：' + errorText);
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    resultDiv.innerHTML = `✅ <strong>连接成功！</strong><br>共找到 ${data.length} 条预测<br><br>` 
+                        + data.map(m => `• ${m.topic} (奖池 ${m.pool} USDT)`).join('<br>');
+                } else {
+                    resultDiv.innerHTML = `✅ 连接成功！<br>目前还没有预测数据`;
                 }
-
-                const data = await res.json();
-                document.getElementById('status').innerText = "✅ 终于连上了！";
-                out.innerHTML = data.length > 0 
-                    ? data.map(m => `<li>${m.topic} (奖池: ${m.pool})</li>`).join('')
-                    : "连接成功，但表是空的";
             } catch (err) {
-                document.getElementById('status').innerText = "❌ 原始连接也失败了";
-                out.innerHTML = `<span style="color:red;">具体报错内容：</span><br>${err.message}<br><br><b>💡 这说明 Supabase 内部的 RLS 权限还没关掉。</b>`;
+                resultDiv.innerHTML = `❌ 连接失败<br><br>${err.message || err}<br><br>请把这个错误截图发给我`;
             }
         }
-        fastConnect();
+
+        window.onload = test;
     </script>
 </body>
 </html>
