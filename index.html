@@ -1,144 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>中国预测市场</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <title>中国预测市场 - 调试版</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            background:#0e1621; 
-            color:white; 
-            font-family:sans-serif; 
-            text-align:center; 
-            padding:20px; 
-            line-height:1.6;
+        body { background:#0e1621; color:white; font-family:sans-serif; text-align:center; padding:20px; }
+        .container { max-width: 400px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 30px; }
+        .market-card {
+            background:#17212b; padding:18px; border-radius:12px; margin-bottom:15px; 
+            text-align:left; border-left: 5px solid #248bcf; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        h1 { 
-            font-size: 36px; 
-            margin: 20px 0 10px; 
-        }
-        button {
-            background:#248bcf; 
-            color:white; 
-            border:none; 
-            padding:16px; 
-            width:100%; 
-            max-width:400px; 
-            border-radius:12px; 
-            font-weight:bold; 
-            font-size:17px; 
-            margin:12px auto; 
-            display:block; 
-            cursor:pointer;
-        }
-        .card {
-            background:#17212b; 
-            padding:18px; 
-            border-radius:12px; 
-            margin:15px auto; 
-            max-width:400px; 
-            text-align:left; 
-            border-left: 5px solid #248bcf;
-        }
-        #wallet-info {
-            margin: 20px 0;
-            font-size: 18px;
-            color: #90ee90;
-        }
+        .market-card strong { font-size: 18px; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    
-    <h1>🚀 中国预测市场</h1>
-    
-    <!-- TON 钱包连接按钮 -->
-    <div id="ton-connect-button" style="margin:25px auto; min-height:50px;"></div>
-    
-    <div id="wallet-info">未连接钱包</div>
-
-    <div style="max-width:400px; margin:0 auto;">
-        <button onclick="publish()">📝 发起新预测 (0.1 TON)</button>
-    </div>
-
-    <div id="list" style="margin-top:30px; max-width:400px; margin-left:auto; margin-right:auto;">
-        正在加载预测列表...
+    <div class="container">
+        <h1>🚀 中国预测市场</h1>
+        <div id="market-list">
+            <p style="color:#5a6e82;">正在连接数据库，请稍候...</p >
+        </div>
     </div>
 
     <script>
-        // ==================== 配置 ====================
-        const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
-        
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        const SUPABASE_URL = 'https://kfalyawduveuuttniun.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ==================== TON Connect 初始化 ====================
-        let tonConnectUI = null;
-
-        async function initTonConnect() {
+        async function fetchMarkets() {
             try {
-                tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                    manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
-                    buttonRootId: 'ton-connect-button'
-                });
-
-                tonConnectUI.onStatusChange((wallet) => {
-                    const infoDiv = document.getElementById('wallet-info');
-                    if (wallet) {
-                        const addr = wallet.account.address;
-                        const short = addr.slice(0, 6) + '...' + addr.slice(-4);
-                        infoDiv.innerHTML = `✅ 已连接: <span style="font-family:monospace;">${short}</span>`;
-                    } else {
-                        infoDiv.innerHTML = '未连接钱包';
-                    }
-                });
-            } catch (error) {
-                console.error("TON Connect 初始化失败:", error);
-            }
-        }
-
-        // ==================== 加载列表 ====================
-        async function load() {
-            try {
-                const { data } = await supabaseClient
-                    .from('markets')
-                    .select('*')
-                    .order('id', { ascending: false });
-
-                const listDiv = document.getElementById('list');
+                const { data, error } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
+                const listDiv = document.getElementById('market-list');
+                if (error) {
+                    listDiv.innerHTML = `<p style="color:red;">读取失败: ${error.message}</p >`;
+                    return;
+                }
                 if (data && data.length > 0) {
-                    listDiv.innerHTML = data.map(m => `
-                        <div class="card">
-                            <strong>${m.topic}</strong><br>
-                            <small style="color:#81b3d2;">💰 奖池: ${m.pool || 0.1} TON</small>
+                    listDiv.innerHTML = data.map(item => `
+                        <div class="market-card">
+                            <strong>${item.topic}</strong>
+                            <small style="color:#81b3d2;">💰 奖池: ${item.pool || 0} TON</small>
                         </div>
                     `).join('');
                 } else {
-                    listDiv.innerHTML = `<p style="color:#aaa; text-align:center;">暂无预测，快来发起第一个吧！</p >`;
+                    listDiv.innerHTML = `<p>数据库已连接，但目前没有数据。</p >`;
                 }
             } catch (err) {
-                document.getElementById('list').innerHTML = `<p style="color:red;">数据库加载失败</p >`;
+                document.getElementById('market-list').innerHTML = `<p>连接异常</p >`;
             }
         }
-
-        // ==================== 发起预测 ====================
-        async function publish() {
-            const topic = prompt("请输入预测话题：");
-            if (!topic || !topic.trim()) return;
-
-            if (!tonConnectUI || !tonConnectUI.connected) {
-                alert("请先点击上方按钮连接 TON 钱包！");
-                return;
-            }
-
-            if (!confirm("本次操作需要支付 0.1 TON，确定继续吗？")) {
-                return;
-            }
-
-            try {
-                // 发起支付
-                await tonConnectUI.sendTransaction({
-                    validUntil: Math.floor(Date.now() / 1000) + 600,
-                    messages: [{
-                        address: "UQAb_7Mh7ZqfS_388mQ6E
+        window.onload = fetchMarkets;
+    </script>
+</body>
+</html>
