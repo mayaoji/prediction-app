@@ -39,92 +39,16 @@
             text-align:left; 
             border-left: 5px solid #248bcf;
         }
+        #wallet-info {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #90ee90;
+        }
     </style>
 </head>
 <body>
     
     <h1>🚀 中国预测市场</h1>
     
-    <div id="ton-connect-button" style="margin:25px auto; min-height:50px;"></div>
-    
-    <div style="max-width:400px; margin:0 auto;">
-        <button onclick="publish()">📝 发起新预测 (0.1 TON)</button>
-    </div>
-
-    <div id="list" style="margin-top:30px; max-width:400px; margin-left:auto; margin-right:auto;">
-        正在加载预测列表...
-    </div>
-
-    <script>
-        const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
-        
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
-        // 修正后的 TON Connect 初始化
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-button'
-        });
-
-        async function load() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('markets')
-                    .select('*')
-                    .order('id', { ascending: false });
-
-                const listDiv = document.getElementById('list');
-                if (data && data.length > 0) {
-                    listDiv.innerHTML = data.map(m => `
-                        <div class="card">
-                            <strong>${m.topic}</strong><br>
-                            <small style="color:#81b3d2;">💰 奖池: ${m.pool || 0.1} TON</small>
-                        </div>
-                    `).join('');
-                } else {
-                    listDiv.innerHTML = `<p style="color:#aaa; text-align:center;">暂无预测项目，快来发起第一个吧！</p >`;
-                }
-            } catch (err) {
-                document.getElementById('list').innerHTML = `<p style="color:red;">数据库连接失败</p >`;
-            }
-        }
-
-        async function publish() {
-            const topic = prompt("请输入预测话题：");
-            if (!topic || !topic.trim()) return;
-
-            try {
-                if (!tonConnectUI.connected) {
-                    alert("请先点击上方按钮连接 TON 钱包！");
-                    return;
-                }
-
-                // 发起真实支付
-                await tonConnectUI.sendTransaction({
-                    validUntil: Math.floor(Date.now() / 1000) + 600,
-                    messages: [{
-                        address: "UQAb_7Mh7ZqfS_388mQ6E9vG_B6fKxH7O7X7_tZ_Az2y",
-                        amount: "100000000"   // 0.1 TON
-                    }]
-                });
-
-                // 支付成功后写入数据库
-                await supabaseClient.from('markets').insert([{ 
-                    topic: topic.trim(), 
-                    pool: 0.1 
-                }]);
-
-                alert("✅ 预测发布成功！");
-                load();   // 刷新列表
-            } catch (e) {
-                console.error(e);
-                alert("发布失败或用户取消支付");
-            }
-        }
-
-        // 页面加载完成后执行
-        window.onload = load;
-    </script>
-</body>
-</html>
+    <!-- TON 钱包连接按钮 -->
+    <div id="ton-connect-button" style="margin:25px auto; min-height:50px
