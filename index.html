@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>中国预测市场 - 网页版</title>
+    <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: -apple-system, sans-serif; background-color: #0e1621; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .card { background: #17212b; border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
@@ -19,14 +19,15 @@
     <div id="ton-connect-button"></div>
     
     <div class="card">
-        <div id="status" style="color: #81b3d2; margin-bottom: 15px;">直接写入模式：数据全网共享</div>
+        <div id="status" style="color: #81b3d2; margin-bottom: 15px;">✅ 模式：全网实时同步</div>
         <button onclick="createNewMarket()">📝 发起新预测 (0.1 TON)</button>
-        <button onclick="loadMarkets()" style="background: #2b5278; margin-top: 15px;">🔄 刷新数据</button>
+        <button onclick="loadMarkets()" style="background: #2b5278; margin-top: 15px;">🔄 刷新实时数据</button>
     </div>
 
     <div id="market-list" style="margin-top: 30px; width: 100%; max-width: 400px;"></div>
 
     <script>
+        // 配置你的 Supabase
         const supabaseUrl = 'https://kfalyawduveuuttniun.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -50,8 +51,8 @@
                     }]
                 });
 
-                // 2. 支付成功后，直接由网页写入数据库
-                document.getElementById('status').innerText = "📡 支付成功，正在写入数据库...";
+                // 2. 支付成功，立即写入
+                document.getElementById('status').innerText = "📡 正在保存到云端...";
                 
                 const { error } = await supabaseClient
                     .from('markets')
@@ -59,12 +60,11 @@
 
                 if (error) throw error;
 
-                alert("✅ 预测发布成功！数据已实时同步。");
-                loadMarkets(); // 刷新列表
+                document.getElementById('status').innerText = "✅ 发布成功！";
+                loadMarkets(); // 自动刷新列表
 
             } catch (e) {
-                console.error(e);
-                alert("发布失败或取消，请检查网络");
+                alert("操作失败或取消，原因：" + e.message);
             }
         }
 
