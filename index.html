@@ -7,11 +7,14 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background-color: #0e1621; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: #17212b; border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
+        body { font-family: -apple-system, sans-serif; background-color: #0e1621; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #17212b; border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-bottom: 20px; }
         #ton-connect-button { margin-bottom: 20px; min-height: 44px; }
-        button { background: #248bcf; color: white; border: none; border-radius: 8px; padding: 14px; font-weight: bold; width: 100%; cursor: pointer; }
-        .market-item { background: #242f3d; padding: 15px; border-radius: 10px; margin-bottom: 10px; width: 100%; max-width: 400px; border-left: 4px solid #248bcf; }
+        button { background: #248bcf; color: white; border: none; border-radius: 8px; padding: 14px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; }
+        #market-list { width: 100%; max-width: 400px; }
+        .market-item { background: #242f3d; padding: 15px; border-radius: 10px; margin-bottom: 12px; border-left: 4px solid #248bcf; }
+        .market-item strong { display: block; font-size: 18px; margin-bottom: 5px; }
+        .market-item small { color: #81b3d2; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -22,47 +25,65 @@
         <button onclick="createNewMarket()">📝 发起新预测 (0.1 TON)</button>
     </div>
 
-    <div id="market-list">正在连接云端...</div>
+    <div id="market-list">正在获取实时数据...</div>
 
     <script>
         const supabaseUrl = 'https://kfalyawduveuuttniun.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // 关键点修复：使用 supabase.createClient 而不是简单的 createClient
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
 
+        // 初始化钱包
         const tonConnectUI = new TONConnectUI.TonConnectUI({
             manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-button'
         });
 
+        // 核心：读取数据函数
         async function loadMarkets() {
-            const { data, error } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
-            const listDiv = document.getElementById('market-list');
-            if (data && data.length > 0) {
-                listDiv.innerHTML = data.map(m => `
-                    <div class="market-item">
-                        <strong>${m.topic}</strong><br>
-                        <small>奖池: ${m.pool} TON</small>
-                    </div>
-                `).join('');
-            } else {
-                listDiv.innerHTML = "暂无数据，请尝试下拉刷新";
+            try {
+                const { data, error } = await client.from('markets').select('*').order('id', { ascending: false });
+                const listDiv = document.getElementById('market-list');
+                if (data && data.length > 0) {
+                    listDiv.innerHTML = data.map(m => `
+                        <div class="market-item">
+                            <strong>${m.topic}</strong>
+                            <small>💰 奖池: ${m.pool} TON</small>
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = "<p style='text-align:center; color:#aaa;'>暂无数据，请尝试刷新</p >";
+                }
+            } catch (err) {
+                document.getElementById('market-list').innerText = "加载失败：" + err.message;
             }
         }
 
+        // 核心：发起预测函数
         async function createNewMarket() {
-            const topic = prompt("输入预测话题:");
+            const topic = prompt("请输入您的预测话题：");
             if (!topic) return;
+
             try {
+                // 发起支付
                 await tonConnectUI.sendTransaction({
                     validUntil: Math.floor(Date.now() / 1000) + 600,
                     messages: [{ address: "UQAb_7Mh7ZqfS_388mQ6E9vG_B6fKxH7O7X7_tZ_Az2y", amount: "100000000" }]
                 });
-                await supabaseClient.from('markets').insert([{ topic: topic, pool: 0.1 }]);
+
+                // 直接写入 Supabase
+                const { error } = await client.from('markets').insert([{ topic: topic, pool: 0.1 }]);
+                if (error) throw error;
+
                 alert("发布成功！");
                 loadMarkets();
-            } catch (e) { alert("失败: " + e.message); }
+            } catch (e) {
+                alert("操作失败：" + (e.message || "用户取消"));
+            }
         }
 
+        // 启动加载
         window.onload = loadMarkets;
     </script>
 </body>
