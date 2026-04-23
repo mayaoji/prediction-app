@@ -11,7 +11,7 @@
         h1 { font-size: 36px; margin: 20px 0 10px; }
         button { background:#248bcf; color:white; border:none; padding:16px; width:100%; max-width:400px; border-radius:12px; font-weight:bold; font-size:17px; margin:12px auto; display:block; cursor:pointer; }
         .card { background:#17212b; padding:18px; border-radius:12px; margin:15px auto; max-width:400px; text-align:left; border-left:5px solid #248bcf; }
-        #wallet-info { margin:20px 0; font-size:18px; color:#90ee90; }
+        #status { margin:20px 0; padding:15px; background:#17212b; border-radius:8px; font-size:16px; }
     </style>
 </head>
 <body>
@@ -24,32 +24,47 @@
         <button onclick="publish()">📝 发起新预测 (0.1 TON)</button>
     </div>
 
-    <div id="list" style="margin-top:30px; max-width:400px; margin-left:auto; margin-right:auto;">
-        正在加载...
-    </div>
+    <div id="status">正在连接数据库...</div>
+    <div id="list" style="margin-top:20px; max-width:400px; margin-left:auto; margin-right:auto;"></div>
 
     <script>
         const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
         
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
+        let supabaseClient;
         let tonConnectUI = null;
 
-        async function initTonConnect() {
-            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
-                buttonRootId: 'ton-connect-button'
-            });
+        async function init() {
+            try {
+                supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+                document.getElementById('status').innerHTML = '✅ Supabase 客户端创建成功，正在加载数据...';
+                
+                const { data, error } = await supabaseClient.from('markets').select('*').limit(5);
+                if (error) throw error;
+
+                const listDiv = document.getElementById('list');
+                if (data && data.length > 0) {
+                    listDiv.innerHTML = data.map(m => `
+                        <div class="card">
+                            <strong>${m.topic}</strong><br>
+                            <small>💰 奖池: ${m.pool} TON</small>
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = `<p style="color:#aaa;">暂无预测数据</p >`;
+                }
+            } catch (err) {
+                document.getElementById('status').innerHTML = 
+                    `<span style="color:red;">连接失败: ${err.message || err}</span><br>
+                    <small>请检查 Supabase 项目是否开启了 Data API 和 RLS</small>`;
+            }
         }
 
-        async function load() {
-            const { data } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
-            const listDiv = document.getElementById('list');
-            if (data && data.length > 0) {
-                listDiv.innerHTML = data.map(m => `
-                    <div class="card">
-                        <strong>${m.topic}</strong><br>
-                        <small style="color:#81b3d2;">💰 奖池: ${m.pool} TON</small>
-                    </div>
-                `).join('');
+        async function publish() {
+            alert("请先确保 Supabase 连接正常，再测试发布功能");
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
