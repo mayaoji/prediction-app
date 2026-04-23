@@ -9,11 +9,11 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const bot = new TelegramBot(token, { polling: true });
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-console.log("机器人后端已启动...");
+console.log("🚀 机器人云端大脑已在 Render 启动！");
 
 // 监听指令
 bot.onText(/\/start/, (msg) => {
-    bot.sendMessage(msg.chat.id, "欢迎来到中国预测市场！🚀\n\n点击下方按钮即可发起或查看预测。", {
+    bot.sendMessage(msg.chat.id, "欢迎来到中国预测市场！🚀\n\n数据现在由云端中转，即便手机网络报错，数据也会成功写入！", {
         reply_markup: {
             inline_keyboard: [[
                 { text: "打开预测市场", web_app: { url: "https://mayaoji.github.io/prediction-app/" } }
@@ -22,7 +22,7 @@ bot.onText(/\/start/, (msg) => {
     });
 });
 
-// 监听前端传来的“支付成功”信号
+// 核心：处理来自网页的信号
 bot.on('message', async (msg) => {
     if (msg.web_app_data) {
         const data = JSON.parse(msg.web_app_data.data);
@@ -31,9 +31,9 @@ bot.on('message', async (msg) => {
             const { error } = await supabase.from('markets').insert([{ topic, pool }]);
             
             if (!error) {
-                bot.sendMessage(msg.chat.id, `✅ 收到信号！话题【${topic}】已成功发布到云端。`);
+                bot.sendMessage(msg.chat.id, `✅ 云端同步成功！话题【${topic}】已安全存入数据库。`);
             } else {
-                bot.sendMessage(msg.chat.id, "❌ 后端写入数据库失败：" + error.message);
+                bot.sendMessage(msg.chat.id, "❌ 云端写入失败：" + error.message);
             }
         }
     }
