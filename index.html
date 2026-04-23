@@ -8,15 +8,12 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0e1621; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: -apple-system, sans-serif; background-color: #0e1621; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         #ton-connect-button { margin-bottom: 20px; }
-        .card { background: #17212b; border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; }
-        h1 { font-size: 24px; margin-bottom: 10px; }
-        .status { color: #81b3d2; font-size: 14px; margin-bottom: 20px; }
+        .card { background: #17212b; border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
         button { background: #248bcf; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        button:active { background: #1d77b0; }
-        .market-list { margin-top: 30px; width: 100%; max-width: 400px; }
-        .market-item { background: #242f3d; padding: 15px; border-radius: 8px; margin-bottom: 10px; text-align: left; border-left: 4px solid #248bcf; }
+        .status { color: #81b3d2; font-size: 14px; margin-bottom: 20px; }
+        .market-item { background: #242f3d; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #248bcf; text-align: left; }
     </style>
 </head>
 <body>
@@ -25,70 +22,58 @@
     <div id="ton-connect-button"></div>
     
     <div class="card">
-        <div class="status" id="sync-status">正在通过 Telegram 安全通道同步...</div>
+        <div class="status" id="sync-status">📡 云端大脑已就绪</div>
         <button onclick="createNewMarket()">📝 发起新预测 (0.1 TON)</button>
-        <button onclick="loadMarkets()" style="background: #2b5278; margin-top: 15px;">🔄 刷新实时数据</button>
+        <button onclick="loadMarkets()" style="background: #2b5278; margin-top: 15px;">🔄 刷新数据</button>
     </div>
 
-    <div class="market-list" id="market-list">
-        <p style="text-align: center; color: #aaa;">数据同步中，请稍后刷新...</p >
-    </div>
+    <div id="market-list" style="margin-top: 30px; width: 100%; max-width: 400px;"></div>
 
     <script>
-        // 1. 初始化 Supabase (用于读取数据)
         const supabaseUrl = 'https://kfalyawduveuuttniun.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // 2. 初始化 TON Connect
         const tonConnectUI = new TONConnectUI.TonConnectUI({
             manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-button'
         });
 
-        // 3. 核心：发起预测并支付
         async function createNewMarket() {
-            const topic = prompt("请输入您想发起的预测话题：\n(例如：明天广州会下雨吗？)");
+            const topic = prompt("请输入预测话题：");
             if (!topic) return;
 
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 600,
-                messages: [{
-                    address: "UQAb_7Mh7ZqfS_388mQ6E9vG_B6fKxH7O7X7_tZ_Az2y", // 你的收款地址
-                    amount: "100000000" // 0.1 TON
-                }]
-            };
-
             try {
-                // 执行支付
-                await tonConnectUI.sendTransaction(transaction);
+                // 1. 发起支付
+                await tonConnectUI.sendTransaction({
+                    validUntil: Math.floor(Date.now() / 1000) + 600,
+                    messages: [{
+                        address: "UQAb_7Mh7ZqfS_388mQ6E9vG_B6fKxH7O7X7_tZ_Az2y",
+                        amount: "100000000"
+                    }]
+                });
 
-                // --- 关键修复：支付成功后，立即向机器人后端发送同步指令 ---
-                const marketData = {
-                    type: 'create_market',
-                    topic: topic,
-                    pool: 0.1
-                };
+                // 2. 支付成功，准备数据
+                const marketData = { type: 'create_market', topic: topic, pool: 0.1 };
+                
+                // 3. 改变状态文字，给用户心理准备
+                document.getElementById('sync-status').innerText = "⏳ 支付成功，正在同步到云端...";
 
-                // 将数据传给 Telegram 机器人，触发 Render 上的 server.js 写入数据库
+                // 4. 发送数据给机器人
                 Telegram.WebApp.sendData(JSON.stringify(marketData));
 
-                alert("支付成功！数据正在云端同步，请返回对话框查看确认消息。");
-                Telegram.WebApp.close(); // 同步后自动关闭网页
+                // 5. 关键：延迟 2.5 秒再关闭，确保数据完全发给 Render
+                setTimeout(() => {
+                    Telegram.WebApp.close();
+                }, 2500);
 
             } catch (e) {
-                console.error(e);
-                alert("支付未完成或取消");
+                alert("操作取消");
             }
         }
 
-        // 4. 从数据库加载数据显示在网页上
         async function loadMarkets() {
-            const { data, error } = await supabase
-                .from('markets')
-                .select('*')
-                .order('id', { ascending: false });
-
+            const { data } = await supabase.from('markets').select('*').order('id', { ascending: false });
             const listDiv = document.getElementById('market-list');
             if (data && data.length > 0) {
                 listDiv.innerHTML = data.map(m => `
@@ -97,13 +82,11 @@
                         <small>奖池：${m.pool} TON</small>
                     </div>
                 `).join('');
-                document.getElementById('sync-status').innerText = "✅ 云端数据同步已就绪";
             } else {
-                listDiv.innerHTML = '<p style="text-align: center; color: #aaa;">暂无预测话题</p >';
+                listDiv.innerHTML = '<p style="text-align: center; color: #aaa;">暂无数据，请尝试刷新</p >';
             }
         }
 
-        // 页面加载时自动拉取一次数据
         window.onload = loadMarkets;
     </script>
 </body>
