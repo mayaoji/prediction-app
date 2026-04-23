@@ -9,7 +9,6 @@ http.createServer((req, res) => {
 const TelegramBot = require('node-telegram-bot-api');
 // ... 后面的代码保持不变 ...
 
-const TelegramBot = require('node-telegram-bot-api');
 const { createClient } = require('@supabase/supabase-js');
 
 // 配置信息
