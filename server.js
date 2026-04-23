@@ -1,3 +1,14 @@
+const http = require('http');
+// 专门给 Render 准备的“假窗口”，防止它报错超时
+http.createServer((req, res) => {
+  res.write('Bot is alive!');
+  res.end();
+}).listen(10000); 
+
+// --- 以下是你原本的机器人代码 ---
+const TelegramBot = require('node-telegram-bot-api');
+// ... 后面的代码保持不变 ...
+
 const TelegramBot = require('node-telegram-bot-api');
 const { createClient } = require('@supabase/supabase-js');
 
