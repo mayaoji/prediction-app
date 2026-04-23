@@ -2,69 +2,42 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>中国预测市场</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诊断 - 中国预测市场</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background:#0e1621; color:white; font-family:sans-serif; text-align:center; padding:20px; line-height:1.6; }
-        h1 { font-size: 36px; margin: 20px 0 10px; }
-        button { background:#248bcf; color:white; border:none; padding:16px; width:100%; max-width:400px; border-radius:12px; font-weight:bold; font-size:17px; margin:12px auto; display:block; cursor:pointer; }
-        .card { background:#17212b; padding:18px; border-radius:12px; margin:15px auto; max-width:400px; text-align:left; border-left:5px solid #248bcf; }
-        #status { margin:20px 0; padding:15px; background:#17212b; border-radius:8px; font-size:16px; }
+        body { background:#0e1621; color:white; font-family:sans-serif; padding:20px; text-align:center; }
+        #status { background:#17212b; padding:20px; border-radius:12px; margin:20px auto; max-width:400px; }
     </style>
 </head>
 <body>
-    <h1>🚀 中国预测市场</h1>
+    <h1>🚀 连接诊断</h1>
     
-    <div id="ton-connect-button" style="margin:25px auto; min-height:50px;"></div>
-    <div id="wallet-info">未连接钱包</div>
-
-    <div style="max-width:400px; margin:0 auto;">
-        <button onclick="publish()">📝 发起新预测 (0.1 TON)</button>
-    </div>
-
-    <div id="status">正在连接数据库...</div>
-    <div id="list" style="margin-top:20px; max-width:400px; margin-left:auto; margin-right:auto;"></div>
+    <div id="status">正在测试 Supabase 连接...</div>
 
     <script>
         const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
-        
-        let supabaseClient;
-        let tonConnectUI = null;
 
-        async function init() {
+        async function testConnection() {
+            const statusDiv = document.getElementById('status');
             try {
-                supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-                document.getElementById('status').innerHTML = '✅ Supabase 客户端创建成功，正在加载数据...';
+                const supabase = supabase.createClient(SB_URL, SB_KEY);
+                statusDiv.innerHTML = '✅ Supabase 客户端创建成功，正在查询数据...';
+
+                const { data, error } = await supabase.from('markets').select('*').limit(3);
                 
-                const { data, error } = await supabaseClient.from('markets').select('*').limit(5);
                 if (error) throw error;
 
-                const listDiv = document.getElementById('list');
-                if (data && data.length > 0) {
-                    listDiv.innerHTML = data.map(m => `
-                        <div class="card">
-                            <strong>${m.topic}</strong><br>
-                            <small>💰 奖池: ${m.pool} TON</small>
-                        </div>
-                    `).join('');
-                } else {
-                    listDiv.innerHTML = `<p style="color:#aaa;">暂无预测数据</p >`;
-                }
+                statusDiv.innerHTML = `✅ 连接成功！<br>共找到 ${data.length} 条记录`;
+                console.log("数据:", data);
             } catch (err) {
-                document.getElementById('status').innerHTML = 
-                    `<span style="color:red;">连接失败: ${err.message || err}</span><br>
-                    <small>请检查 Supabase 项目是否开启了 Data API 和 RLS</small>`;
+                statusDiv.innerHTML = `<span style="color:red;">连接失败: ${err.message || err}</span>`;
+                console.error(err);
             }
         }
 
-        async function publish() {
-            alert("请先确保 Supabase 连接正常，再测试发布功能");
-        }
-
-        window.onload = init;
+        window.onload = testConnection;
     </script>
 </body>
 </html>
