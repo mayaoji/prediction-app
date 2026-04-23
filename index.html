@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background:#0e1621; color:white; font-family:sans-serif; text-align:center; padding:20px; }
-        h1 { font-size: 42px; margin: 20px 0; }
+        h1 { font-size: 32px; margin: 20px 0; }
         button {
             background:#248bcf; color:white; border:none; padding:16px; width:100%; 
             max-width:400px; border-radius:12px; font-weight:bold; font-size:17px; 
@@ -16,7 +16,7 @@
         }
         .card {
             background:#17212b; padding:18px; border-radius:12px; margin:15px auto; 
-            max-width:400px; text-align:left;
+            max-width:400px; text-align:left; border-left: 4px solid #248bcf;
         }
     </style>
 </head>
@@ -26,57 +26,71 @@
     
     <div id="ton-connect-button" style="margin:20px auto; min-height:50px;"></div>
     
-    <div class="card">
+    <div style="max-width:400px; margin:0 auto;">
         <button onclick="publish()">📝 发起新预测 (0.1 TON)</button>
     </div>
 
-    <div id="list" style="margin-top:30px; max-width:400px; margin-left:auto; margin-right:auto;"></div>
+    <div id="list" style="margin-top:30px; max-width:400px; margin-left:auto; margin-right:auto;">
+        正在连接数据库...
+    </div>
 
     <script>
         const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
+        
+        // 1. 初始化数据库
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        // 2. 初始化钱包 (修正变量名)
+        const tonConnectUI = new TONConnectUI.TonConnectUI({
             manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-button'
         });
 
+        // 3. 加载函数
         async function load() {
-            const { data } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
-            const listDiv = document.getElementById('list');
-            if (data && data.length > 0) {
-                listDiv.innerHTML = data.map(m => `
-                    <div class="card">
-                        <strong>${m.topic}</strong><br>
-                        <small style="color:#81b3d2;">💰 奖池: ${m.pool} TON</small>
-                    </div>
-                `).join('');
-            } else {
-                listDiv.innerHTML = `<p style="text-align:center; color:#aaa;">暂无预测，点击上方按钮发起第一个</p >`;
+            try {
+                const { data, error } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
+                const listDiv = document.getElementById('list');
+                if (data && data.length > 0) {
+                    listDiv.innerHTML = data.map(m => `
+                        <div class="card">
+                            <strong>话题：${m.topic}</strong><br>
+                            <small style="color:#81b3d2;">💰 奖池: ${m.pool} TON</small>
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = `<p style="color:#aaa;">暂无数据，快来发起第一个预测吧</p >`;
+                }
+            } catch (err) {
+                document.getElementById('list').innerHTML = "加载失败，请检查数据库";
             }
         }
 
+        // 4. 发布函数
         async function publish() {
             const topic = prompt("请输入预测话题：");
             if (!topic) return;
 
             try {
-                // 发起真实支付
+                if (!tonConnectUI.connected) {
+                    alert("请先点击上方按钮连接钱包！");
+                    return;
+                }
+
                 await tonConnectUI.sendTransaction({
                     validUntil: Math.floor(Date.now() / 1000) + 600,
                     messages: [{
                         address: "UQAb_7Mh7ZqfS_388mQ6E9vG_B6fKxH7O7X7_tZ_Az2y",
-                        amount: "100000000"   // 0.1 TON
+                        amount: "100000000"
                     }]
                 });
 
-                // 支付成功后存入数据库
                 await supabaseClient.from('markets').insert([{ topic: topic, pool: 0.1 }]);
                 alert("✅ 发布成功！");
                 load();
             } catch (e) {
-                alert("操作取消或失败");
+                alert("发布未完成");
             }
         }
 
