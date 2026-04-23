@@ -2,36 +2,89 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supabase 测试</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中国预测市场</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background:#0e1621; color:white; padding:40px; font-family:sans-serif; text-align:center; }
-        #result { background:#17212b; padding:30px; border-radius:12px; margin:20px auto; max-width:500px; }
+        body { 
+            background:#0e1621; 
+            color:white; 
+            font-family:sans-serif; 
+            text-align:center; 
+            padding:20px; 
+            line-height:1.6;
+        }
+        h1 { font-size: 36px; margin: 20px 0 10px; }
+        button {
+            background:#248bcf; 
+            color:white; 
+            border:none; 
+            padding:16px; 
+            width:100%; 
+            max-width:400px; 
+            border-radius:12px; 
+            font-weight:bold; 
+            font-size:17px; 
+            margin:12px auto; 
+            display:block; 
+            cursor:pointer;
+        }
+        .card {
+            background:#17212b; 
+            padding:18px; 
+            border-radius:12px; 
+            margin:15px auto; 
+            max-width:400px; 
+            text-align:left; 
+            border-left:5px solid #248bcf;
+        }
+        #status { margin:20px 0; padding:15px; background:#17212b; border-radius:8px; }
     </style>
 </head>
 <body>
-    <h1>Supabase 连接测试</h1>
-    <div id="result">正在测试连接...</div>
+    <h1>🚀 中国预测市场</h1>
+    
+    <div id="status">正在初始化...</div>
 
     <script>
-        const supabase = supabase.createClient(
-            'https://kfalyawduveuuttniun.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0'
-        );
+        // Supabase 配置
+        const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
 
-        async function test() {
-            const result = document.getElementById('result');
+        let supabaseClient;
+
+        async function initSupabase() {
             try {
-                const { data, error } = await supabase.from('markets').select('*').limit(10);
-                if (error) throw error;
-                result.innerHTML = `✅ 连接成功！<br>找到 \( {data.length} 条记录<br><br> \){JSON.stringify(data, null, 2)}`;
+                supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+                document.getElementById('status').innerHTML = '✅ Supabase 初始化成功，正在加载数据...';
+                await loadMarkets();
             } catch (err) {
-                result.innerHTML = `❌ 连接失败<br><br>${err.message || err}`;
+                document.getElementById('status').innerHTML = `<span style="color:red">初始化失败: ${err.message}</span>`;
             }
         }
 
-        window.onload = test;
+        async function loadMarkets() {
+            try {
+                const { data, error } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
+                if (error) throw error;
+
+                const listHTML = data && data.length > 0 
+                    ? data.map(m => `
+                        <div class="card">
+                            <strong>${m.topic}</strong><br>
+                            <small style="color:#81b3d2;">💰 奖池: ${m.pool} TON</small>
+                        </div>
+                      `).join('')
+                    : '<p style="color:#aaa;">暂无预测数据</p >';
+
+                document.getElementById('status').innerHTML += '<br><br>' + listHTML;
+            } catch (err) {
+                document.getElementById('status').innerHTML += `<br><span style="color:red">加载数据失败: ${err.message}</span>`;
+            }
+        }
+
+        // 页面加载完成后执行
+        window.onload = initSupabase;
     </script>
 </body>
 </html>
