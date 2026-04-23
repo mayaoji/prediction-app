@@ -3,41 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>诊断 - 中国预测市场</title>
+    <title>Supabase 测试</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background:#0e1621; color:white; font-family:sans-serif; padding:20px; text-align:center; }
-        #status { background:#17212b; padding:20px; border-radius:12px; margin:20px auto; max-width:400px; }
+        body { background:#0e1621; color:white; padding:40px; font-family:sans-serif; text-align:center; }
+        #result { background:#17212b; padding:30px; border-radius:12px; margin:20px auto; max-width:500px; }
     </style>
 </head>
 <body>
-    <h1>🚀 连接诊断</h1>
-    
-    <div id="status">正在测试 Supabase 连接...</div>
+    <h1>Supabase 连接测试</h1>
+    <div id="result">正在测试连接...</div>
 
     <script>
-        const SB_URL = 'https://kfalyawduveuuttniun.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0';
+        const supabase = supabase.createClient(
+            'https://kfalyawduveuuttniun.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0'
+        );
 
-        async function testConnection() {
-            const statusDiv = document.getElementById('status');
+        async function test() {
+            const result = document.getElementById('result');
             try {
-                const supabase = supabase.createClient(SB_URL, SB_KEY);
-                statusDiv.innerHTML = '✅ Supabase 客户端创建成功，正在查询数据...';
-
-                const { data, error } = await supabase.from('markets').select('*').limit(3);
-                
+                const { data, error } = await supabase.from('markets').select('*').limit(10);
                 if (error) throw error;
-
-                statusDiv.innerHTML = `✅ 连接成功！<br>共找到 ${data.length} 条记录`;
-                console.log("数据:", data);
+                result.innerHTML = `✅ 连接成功！<br>找到 \( {data.length} 条记录<br><br> \){JSON.stringify(data, null, 2)}`;
             } catch (err) {
-                statusDiv.innerHTML = `<span style="color:red;">连接失败: ${err.message || err}</span>`;
-                console.error(err);
+                result.innerHTML = `❌ 连接失败<br><br>${err.message || err}`;
             }
         }
 
-        window.onload = testConnection;
+        window.onload = test;
     </script>
 </body>
 </html>
