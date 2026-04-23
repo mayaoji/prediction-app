@@ -3,156 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中国预测市场 - 实时同步版</title>
+    <title>中国预测市场 - 支付即发布版</title>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { margin: 0; font-family: "Microsoft YaHei", sans-serif; background: linear-gradient(135deg, #0a2540, #1e3a8a); color: white; text-align: center; min-height: 100vh; padding: 20px; }
-        .market-card { background: rgba(255,255,255,0.1); margin: 15px auto; padding: 25px; border-radius: 16px; text-align: left; max-width: 600px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-        .btn-yes { background: #22c55e; border: none; color: white; padding: 12px; border-radius: 8px; width: 48%; cursor: pointer; font-weight: bold; }
-        .btn-no { background: #ef4444; border: none; color: white; padding: 12px; border-radius: 8px; width: 48%; cursor: pointer; font-weight: bold; }
+        .market-card { background: rgba(255,255,255,0.1); margin: 15px auto; padding: 20px; border-radius: 12px; text-align: left; max-width: 500px; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-yes { background: #22c55e; border: none; color: white; padding: 10px; border-radius: 6px; width: 48%; cursor: pointer; }
+        .btn-no { background: #ef4444; border: none; color: white; padding: 10px; border-radius: 6px; width: 48%; cursor: pointer; }
         #connect-btn-root { margin: 20px 0; display: flex; justify-content: center; }
-        .btn-main { padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: bold; background: white; color: #0a2540; border: none; }
-        #wallet-info { color: #90ee90; margin-bottom: 20px; font-size: 14px; }
+        .btn-main { padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; background: white; color: #0a2540; border: none; margin: 5px; }
     </style>
 </head>
 <body>
 
     <h1>🚀 中国预测市场</h1>
-    <p style="opacity: 0.8;">基于 TON 区块链 · 全球实时同步 · 支付即发布</p >
-
     <div id="connect-btn-root"></div>
-    <div id="wallet-info">等待连接钱包...</div>
+    <div id="wallet-status" style="font-size: 12px; color: #aaa; margin-bottom: 20px;">检测钱包连接中...</div>
 
-    <div style="margin-bottom: 30px;">
+    <div>
         <button class="btn-main" onclick="createMarket()">📝 发起新预测</button>
-        <button class="btn-main" style="margin-left:10px; background:rgba(255,255,255,0.2); color:white;" onclick="fetchMarkets()">🔄 刷新列表</button>
+        <button class="btn-main" style="background:#444; color:white;" onclick="fetchMarkets()">🔄 刷新列表</button>
     </div>
 
-    <div id="market-list">正在加载云端数据...</div>
+    <div id="market-list" style="margin-top: 30px;">正在加载数据...</div>
 
     <script>
-        // ======= 【配置信息】 =======
+        // ======= 配置信息 =======
         const S_URL = "https://kfalyawduveuuttniun.supabase.co"; 
         const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0"; 
         const MY_ADDR = "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y"; 
-        // ===========================
 
         const supabaseClient = supabase.createClient(S_URL, S_KEY);
-
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
             buttonRootId: 'connect-btn-root'
         });
 
-        // 1. 获取云端列表
+        // 刷新列表
         async function fetchMarkets() {
+            const listDiv = document.getElementById('market-list');
             try {
-                const { data, error } = await supabaseClient
-                    .from('markets')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
+                const { data, error } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
-
-                const listDiv = document.getElementById('market-list');
-                if (data && data.length > 0) {
+                if (data.length === 0) {
+                    listDiv.innerHTML = "<p>暂无数据</p >";
+                } else {
                     listDiv.innerHTML = data.map(m => `
                         <div class="market-card">
-                            <div style="float:right; color:#facc15;">💰 奖池: ${m.pool} TON</div>
-                            <h3 style="margin:0 0 15px 0;">${m.topic}</h3>
+                            <div style="font-size:12px; color:#facc15;">奖池: ${m.pool} TON</div>
+                            <h3 style="margin:10px 0;">${m.topic}</h3>
                             <div style="display:flex; justify-content:space-between;">
-                                <button class="btn-yes" onclick="handleBet('${m.topic}')">押注 YES</button>
-                                <button class="btn-no" onclick="handleBet('${m.topic}')">押注 NO</button>
+                                <button class="btn-yes">YES</button>
+                                <button class="btn-no">NO</button>
                             </div>
                         </div>
                     `).join('');
-                } else {
-                    listDiv.innerHTML = "<p>云端暂无数据，快去发起一个吧！</p >";
                 }
             } catch (e) {
-                console.error("加载失败:", e);
+                listDiv.innerHTML = "加载失败: " + e.message;
             }
         }
 
-        // 2. 发起预测话题 (修复写入逻辑)
+        // 发起预测 (优化逻辑：只要调起支付就尝试写入)
         async function createMarket() {
             if (!tonConnectUI.connected) return alert("请先连接钱包");
             
-            const topic = prompt("请输入你想发起的预测话题：");
-            const poolAmt = prompt("注入奖池金额 (TON):", "1");
+            const topic = prompt("输入预测话题：");
+            const poolAmt = prompt("注入金额 (TON):", "0.1");
             if (!topic || !poolAmt) return;
 
-            // 强制转换金额为数字类型
             const numericPool = parseFloat(poolAmt);
-            if (isNaN(numericPool)) return alert("请输入有效的金额数字");
-
-            // 计算总金额 (奖池 + 0.1服务费) 换算成 nanoTON
-            const totalNano = Math.floor((numericPool + 0.1) * 1000000000);
+            const totalNano = Math.floor((numericPool + 0.01) * 1000000000); // 降低手续费门槛
 
             const transaction = {
                 validUntil: Math.floor(Date.now() / 1000) + 300,
-                messages: [{
-                    address: MY_ADDR, 
-                    amount: totalNano.toString() 
-                }]
+                messages: [{ address: MY_ADDR, amount: totalNano.toString() }]
             };
 
             try {
-                // 唤起支付
-                const result = await tonConnectUI.sendTransaction(transaction);
-                alert("支付指令已发送成功！正在同步到云端...");
-
-                // 支付成功后写入 Supabase
+                // 1. 唤起支付界面
+                await tonConnectUI.sendTransaction(transaction);
+                
+                // 2. 无论钱包返回什么，只要没进 catch，就尝试写入数据库
+                alert("正在同步数据到云端...");
                 const { error } = await supabaseClient
                     .from('markets')
                     .insert([{ 
-                        topic: topic.trim(), 
-                        pool: numericPool // 确保这里传的是数字类型
+                        topic: topic, 
+                        pool: numericPool 
                     }]);
-                
-                if (!error) {
-                    alert("🎉 发布成功！全网实时同步。");
-                    fetchMarkets();
+
+                if (error) {
+                    alert("同步失败：" + error.message);
                 } else {
-                    // 如果数据库写入失败，弹出详细原因
-                    alert("数据库同步失败: " + error.message);
-                    console.error("Supabase Error:", error);
+                    alert("🎉 发布成功！");
+                    fetchMarkets();
                 }
             } catch (e) {
-                alert("交易失败或已被取消。");
-                console.error("Transaction Error:", e);
+                // 如果用户点拒绝支付，会来到这里
+                alert("操作取消或遇到错误。");
+                console.error(e);
             }
         }
 
-        // 3. 押注逻辑
-        async function handleBet(topic) {
-            if (!tonConnectUI.connected) return alert("请先连接钱包");
-            const amt = prompt(`押注 [${topic}] 的金额 (TON):`, "1");
-            if (!amt || isNaN(parseFloat(amt))) return;
-
-            try {
-                await tonConnectUI.sendTransaction({
-                    validUntil: Math.floor(Date.now() / 1000) + 300,
-                    messages: [{ address: MY_ADDR, amount: (parseFloat(amt)*1000000000).toString() }]
-                });
-                alert("押注已提交！");
-            } catch (e) {
-                alert("交易未完成");
-            }
-        }
-
-        // 自动初始化
-        fetchMarkets();
-        tonConnectUI.onStatusChange(w => {
-            const info = document.getElementById('wallet-info');
-            if (w) {
-                const addr = w.account.address;
-                info.innerText = "已连接: " + addr.substring(0,4) + "..." + addr.substring(addr.length-4);
-            } else {
-                info.innerText = "钱包未连接";
-            }
+        // 监听钱包状态
+        tonConnectUI.onStatusChange(wallet => {
+            document.getElementById('wallet-status').innerText = wallet ? "已连接" : "未连接";
+            fetchMarkets();
         });
+
+        // 初始加载
+        fetchMarkets();
     </script>
 </body>
 </html>
