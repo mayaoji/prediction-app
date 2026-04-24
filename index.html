@@ -1,157 +1,204 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
+  <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>中国预测市场</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Interface Connectivity Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #248bcf;
-            --bg: #0e1621;
-            --card: #17212b;
+      :root {
+        --primary: #248bcf;
+        --bg: #0e1621;
+        --card: #17212b;
+      }
+      body {
+        background: var(--bg);
+        color: white;
+        font-family: -apple-system, sans-serif;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .header {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .status-badge {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #23313d;
+        color: #81b3d2;
+        margin-top: 8px;
+        display: inline-block;
+      }
+
+      .btn-group {
+        width: 100%;
+        max-width: 400px;
+        display: grid;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.2s;
+      }
+      button:active {
+        transform: scale(0.98);
+        opacity: 0.8;
+      }
+      button.wallet-btn {
+        background: #31a6f5;
+      }
+
+      .data-container {
+        width: 100%;
+        max-width: 400px;
+      }
+      .card {
+        background: var(--card);
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        border-left: 4px solid var(--primary);
+        animation: fadeIn 0.5s ease;
+      }
+      .card-title {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 5px;
+      }
+      .card-meta {
+        font-size: 13px;
+        color: #81b3d2;
+      }
+
+      #error-log {
+        width: 100%;
+        max-width: 400px;
+        color: #ff5f5f;
+        font-size: 12px;
+        background: rgba(255, 95, 95, 0.1);
+        padding: 10px;
+        border-radius: 8px;
+        display: none;
+        margin-top: 10px;
+        word-break: break-all;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-        body {
-            background: var(--bg);
-            color: white;
-            font-family: -apple-system, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .header {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .status-badge {
-            font-size: 14px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            background: #23313d;
-            color: #81b3d2;
-            margin-top: 8px;
-            display: inline-block;
-        }
-        .btn-group {
-            width: 100%;
-            max-width: 400px;
-            display: grid;
-            gap: 12px;
-            margin: 20px 0;
-        }
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button.wallet-btn {
-            background: #31a6f5;
-        }
-        .card {
-            background: var(--card);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border-left: 4px solid var(--primary);
-        }
-        #error-log {
-            width: 100%;
-            max-width: 400px;
-            color: #ff5f5f;
-            background: rgba(255,95,95,0.1);
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 10px;
-            display: none;
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="header">
-        <h2>🚀 中国预测市场</h2>
-        <div id="connection-status" class="status-badge">正在初始化...</div>
+      <h2>系统模块连通测试</h2>
+      <div id="connection-status" class="status-badge">正在检查环境...</div>
     </div>
 
     <div class="btn-group">
-        <button class="wallet-btn" id="wallet-button">🔗 连接 TON 钱包</button>
-        <button onclick="publishPrediction()">📝 发起新预测 (0.1 TON)</button>
+      <button class="wallet-btn" onclick="connectWallet()">检测钱包插件</button>
+      <button onclick="fetchData()">刷新 API 数据</button>
     </div>
 
     <div id="error-log"></div>
+
     <div class="data-container" id="list-container"></div>
 
     <script>
-        // ==================== 配置 ====================
-        const SB_URL = "https://kfalyawduveuuttniun.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0";
-        
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+      // 1. 基础配置 (请检查 URL 和 KEY)
+      const SB_URL = "https://kfalyawduveuuttniiun.supabase.co";
+      const SB_KEY = "sb_publishable_6mBG3xWhYAHCOEmNIG4BEA_wh5O2Ayx";
 
-        let tonConnectUI = null;
+      const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        // ==================== TON 钱包初始化 ====================
-        async function initTonConnect() {
-            try {
-                tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                    manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
-                    buttonRootId: 'wallet-button'
-                });
-
-                tonConnectUI.onStatusChange((wallet) => {
-                    const status = document.getElementById("connection-status");
-                    if (wallet) {
-                        status.innerHTML = "✅ TON 钱包已连接";
-                        status.style.background = "#1e3a2f";
-                    } else {
-                        status.innerHTML = "未连接钱包";
-                    }
-                });
-            } catch (e) {
-                console.error(e);
-            }
+      // 2. 模拟钱包连接逻辑
+      function connectWallet() {
+        if (window.Telegram && window.Telegram.WebApp) {
+          const user = window.Telegram.WebApp.initDataUnsafe.user;
+          alert(
+            user
+              ? `检测到用户: ${user.first_name}`
+              : "请在 Telegram 环境下打开以测试钱包模块",
+          );
+        } else {
+          alert("非 Telegram 环境，模拟钱包检测中...");
         }
+      }
 
-        // ==================== 发布预测 ====================
-        async function publishPrediction() {
-            const topic = prompt("请输入预测话题：");
-            if (!topic || !topic.trim()) return;
+      // 3. 数据拉取核心逻辑 (朋友需要重点调试这里)
+      async function fetchData() {
+        const statusBox = document.getElementById("connection-status");
+        const errorBox = document.getElementById("error-log");
+        const listContainer = document.getElementById("list-container");
 
-            if (!tonConnectUI || !tonConnectUI.connected) {
-                alert("请先连接 TON 钱包！");
-                return;
-            }
+        statusBox.innerText = "正在请求数据...";
+        errorBox.style.display = "none";
 
-            if (!confirm("本次发布需要支付 0.1 TON，确定继续吗？")) return;
+        try {
+          // 重点：如果 Supabase 后台没有开启 CORS，这一步会触发 Failed to fetch
+          const { data, error } = await supabaseClient
+            .from("markets")
+            .select("*")
+            .order("id", { ascending: false });
 
-            try {
-                await tonConnectUI.sendTransaction({
-                    validUntil: Math.floor(Date.now() / 1000) + 600,
-                    messages: [{
-                        address: "UQAb_7Mh7ZqfS_388mQ6E9vG_B6fKxH7O7X7_tZ_Az2y",
-                        amount: "100000000"
-                    }]
-                });
+          if (error) throw error;
 
-                await supabaseClient.from('markets').insert([{ 
-                    topic: topic.trim(), 
-                    pool: 0.1 
-                }]);
+          statusBox.innerText = "✅ API 通信正常";
 
-                alert("✅ 发布成功！");
-                fetchData();
-            } catch (e) {
-                alert("支付取消或失败");
-            }
+          if (data && data.length > 0) {
+            listContainer.innerHTML = data
+              .map(
+                (item) => `
+                        <div class="card">
+                            <div class="card-title">数据项: ${item.topic || "未命名"}</div>
+                            <div class="card-meta">数值参数: ${item.pool || 0} units</div>
+                        </div>
+                    `,
+              )
+              .join("");
+          } else {
+            listContainer.innerHTML =
+              '<div style="color:#666">连接成功，但数据库返回空列表。</div>';
+          }
+        } catch (err) {
+          statusBox.innerText = "❌ 接口通信拦截";
+          errorBox.style.display = "block";
+          errorBox.innerHTML = `<strong>技术细节:</strong><br>${err.message}<br><br>建议检查: Supabase -> Settings -> API -> Allow All Origins 是否设置为 *`;
+          console.error("Fetch Error:", err);
         }
+      }
 
-        // ==================== 加载数据 ====================
-        async function fetchData() {
-            const listContainer = document.getElementById("list-container");
+      // 初始化加载
+      window.onload = () => {
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.ready();
+          window.Telegram.WebApp.expand();
+        }
+        fetchData();
+      };
+    </script>
+  </body>
+</html>
