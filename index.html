@@ -15,17 +15,19 @@
             text-align: center;
         }
         .header {
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
         h1 {
-            font-size: 36px;
-            margin: 10px 0 8px 0;
+            font-size: 32px;           /* 字体变小 */
+            margin: 8px 0 6px 0;
             font-weight: bold;
         }
         .subtitle {
-            font-size: 18px;
-            color: #81b3d2;
-            margin: 0 0 30px 0;
+            font-size: 21px;           /* Polymarket China 字体加大 */
+            color: white;              /* 改为白色 */
+            margin: 0 0 35px 0;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
         button {
             background: #248bcf;
@@ -61,10 +63,48 @@
     <button onclick="connectWallet()">🔗 连接 TON 钱包</button>
     <button onclick="publish()">📝 发起新预测</button>
 
-    <div id="list" style="margin-top: 30px;"></div>
+    <div id="list" style="margin-top: 35px;"></div>
 
     <script>
-        // Supabase 配置
         const supabaseClient = supabase.createClient(
             'https://kfalyawduveuuttniun.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0'
+        );
+
+        async function connectWallet() {
+            alert("TON 钱包连接功能开发中...");
+        }
+
+        async function publish() {
+            const topic = prompt("请输入预测话题：");
+            if (!topic) return;
+            
+            try {
+                await supabaseClient.from('markets').insert([{ topic: topic.trim(), pool: 0.1 }]);
+                alert("✅ 发布成功！");
+                loadList();
+            } catch (e) {
+                alert("发布失败");
+            }
+        }
+
+        async function loadList() {
+            const { data } = await supabaseClient.from('markets').select('*').order('id', { ascending: false });
+            const listDiv = document.getElementById('list');
+            
+            if (data && data.length > 0) {
+                listDiv.innerHTML = data.map(m => `
+                    <div class="card">
+                        <strong>${m.topic}</strong><br>
+                        <small style="color:#81b3d2;">💰 奖池: ${m.pool} USDT</small>
+                    </div>
+                `).join('');
+            } else {
+                listDiv.innerHTML = `<div style="color:#666; text-align:center; padding:30px 0;">暂无预测数据，快来发起第一个吧！</div>`;
+            }
+        }
+
+        window.onload = loadList;
+    </script>
+</body>
+</html>
