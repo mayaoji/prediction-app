@@ -3,33 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>中国预测市场 | 支付中心</title>
+    <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode_js@1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #26a17b;
-            --bg: #0b1118;
-            --card-bg: #161f28;
+            --primary: #00d287; /* 保持图一的亮绿色 */
+            --bg: #0e1621;
+            --card-bg: #17212b;
             --text-main: #ffffff;
-            --text-dim: #7f8c9d;
+            --text-dim: #81b3d2;
             --font-round: "PingFang SC", "Microsoft YaHei", sans-serif;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text-main); font-family: var(--font-round); margin: 0; padding: 0; }
+        body { 
+            background: var(--bg); color: var(--text-main); font-family: var(--font-round); 
+            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
+        }
 
-        /* 主界面样式 */
-        .app-container { padding: 16px; max-width: 500px; margin: 0 auto; padding-bottom: 120px; }
-        .brand { font-size: 20px; font-weight: 700; margin: 10px 0 20px; text-align: center; }
-        .brand span { color: var(--primary); }
+        /* === 恢复图一界面样式 === */
+        .app-container { width: 100%; max-width: 500px; padding: 18px; padding-bottom: 120px; }
+        
+        .brand { font-size: 18px; font-weight: 700; text-align: center; margin: 15px 0 25px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .brand span { color: var(--text-dim); }
 
-        .market-card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05); }
-        .market-topic { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
-        .bet-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; margin-top: 10px; }
+        .market-card {
+            background: var(--card-bg); border-radius: 25px; /* 大圆角 */
+            padding: 24px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.03);
+            transition: transform 0.2s;
+        }
+        .market-card:active { transform: scale(0.98); }
+        
+        .market-topic { font-size: 19px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .pool-info { font-size: 14px; color: var(--text-dim); margin-bottom: 20px; }
+        
+        /* 保持图一的亮绿按钮 */
+        .bet-btn { 
+            width: 100%; background: var(--primary); color: #000; border: none; 
+            padding: 16px; border-radius: 18px; font-size: 16px; font-weight: 700; 
+            box-shadow: 0 4px 15px rgba(0,210,135,0.2); cursor: pointer;
+        }
 
-        /* === 方案 B：收银台弹窗样式 === */
+        /* === 方案 B：专业收银台 (优化手动金额) === */
         #checkout-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
@@ -38,31 +55,37 @@
         .checkout-content {
             background: #ffffff; color: #333; width: 100%; max-width: 500px;
             border-top-left-radius: 30px; border-top-right-radius: 30px;
-            padding: 24px; position: relative; animation: slideUp 0.3s ease-out;
+            padding: 24px 24px 40px; position: relative; animation: slideUp 0.3s ease-out;
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        .checkout-header { text-align: center; margin-bottom: 20px; }
+        .checkout-header { text-align: center; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .checkout-title { font-size: 18px; font-weight: 800; color: #111; }
-        .timer { color: #ff4d4f; font-weight: 700; background: #fff1f0; padding: 4px 12px; border-radius: 20px; font-size: 14px; }
+        .timer { color: #ff4d4f; font-weight: 700; background: #fff1f0; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
 
-        .amount-section { text-align: center; margin: 20px 0; }
-        .amount-value { font-size: 36px; font-weight: 800; color: #111; }
-        .amount-unit { font-size: 16px; margin-left: 4px; }
-
-        .address-box {
-            background: #f5f7f9; border-radius: 16px; padding: 16px;
-            margin-bottom: 20px; border: 1px dashed #cbd5e0;
+        /* === 核心修改：手动金额输入区域 === */
+        .amount-section { text-align: center; margin: 15px 0 25px; }
+        .amount-input-wrapper {
+            display: flex; align-items: baseline; justify-content: center; 
+            border-bottom: 2px solid #eee; width: 80%; margin: 0 auto 8px; padding-bottom: 5px;
         }
+        .amount-input-wrapper:focus-within { border-bottom-color: var(--primary); }
+        .amount-input {
+            border: none; outline: none; background: none; width: 100%;
+            font-size: 42px; font-weight: 800; color: #111; text-align: center; padding: 0;
+        }
+        .amount-unit { font-size: 18px; color: #111; font-weight: 600; margin-left: 5px; }
+
+        .address-box { background: #f5f7f9; border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px dashed #cbd5e0; }
         .address-text { font-family: monospace; font-size: 13px; word-break: break-all; color: #4a5568; }
 
         .qr-container { display: flex; justify-content: center; margin-bottom: 20px; }
-        #qrcode img { border: 10px solid #fff; border-radius: 10px; }
+        #qrcode img { border: 8px solid #fff; border-radius: 10px; }
 
         .action-btns { display: flex; flex-direction: column; gap: 12px; }
-        .btn-okx { background: #000; color: #fff; border: none; padding: 16px; border-radius: 16px; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-copy { background: #edf2f7; color: #2d3748; border: none; padding: 16px; border-radius: 16px; font-weight: 700; }
-        .btn-cancel { color: #a0aec0; border: none; background: none; padding: 10px; font-size: 14px; }
+        .btn-okx { background: #000; color: #fff; border: none; padding: 18px; border-radius: 16px; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; }
+        .btn-copy { background: #edf2f7; color: #2d3748; border: none; padding: 18px; border-radius: 16px; font-weight: 700; cursor: pointer; }
+        .btn-cancel { color: #a0aec0; border: none; background: none; padding: 10px; font-size: 14px; cursor: pointer; text-align: center; margin-top: 10px; }
 
     </style>
 </head>
@@ -70,7 +93,8 @@
 
     <div class="app-container">
         <div class="brand">🚀 中国<span>预测市场</span></div>
-        <div id="market-list"></div>
+        <div id="market-list">
+            </div>
     </div>
 
     <div id="checkout-modal">
@@ -81,16 +105,19 @@
             </div>
 
             <div class="amount-section">
-                <div style="font-size: 14px; color: #718096;">请支付精确金额</div>
-                <div class="amount-value" id="pay-amount">0.11<span class="amount-unit">USDT</span></div>
-                <div style="font-size: 12px; color: var(--primary);">TRC20-USDT</div>
+                <div style="font-size: 14px; color: #718096; margin-bottom: 10px;">请输入您要参与的金额</div>
+                <div class="amount-input-wrapper">
+                    <input type="number" class="amount-input" id="pay-amount-input" placeholder="0.1" step="0.1" min="0.1">
+                    <span class="amount-unit">USDT</span>
+                </div>
+                <div style="font-size: 12px; color: #26a17b;">TRC20-USDT</div>
             </div>
 
             <div class="qr-container" id="qrcode"></div>
 
             <div class="address-box">
                 <div style="font-size: 12px; color: #a0aec0; margin-bottom: 6px;">收款地址 (TRC20)</div>
-                <div class="address-text" id="target-address">TY6nQp8SYZUAB6FTuDxqnB2FU87ukAa...</div>
+                <div class="address-text" id="target-address">...地址加载中</div>
             </div>
 
             <div class="action-btns">
@@ -98,7 +125,7 @@
                     ⚡ 打开 OKX 支付
                 </button>
                 <button class="btn-copy" onclick="copyAddress()">复制收款地址</button>
-                <button class="btn-cancel" onclick="closeCheckout()">取消订单</button>
+                <div class="btn-cancel" onclick="closeCheckout()">取消订单</div>
             </div>
         </div>
     </div>
@@ -109,25 +136,42 @@
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         const tg = window.Telegram.WebApp;
 
-        const RECEIVER_ADDR = "TY6nQp8SYZUAB6FTuDxqnB2FU87ukAa"; // 替换为你的真实地址
+        // === 你的 TRC20 收款地址 ===
+        const RECEIVER_ADDR = "TY6nQp8SYZUAB6FTuDxqnB2FU87ukAa"; 
 
         async function loadMarkets() {
-            const { data } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
-            if (data) {
-                document.getElementById('market-list').innerHTML = data.map(item => `
-                    <div class="market-card">
-                        <div class="market-topic">📊 ${item.topic || '话题'}</div>
-                        <div style="color: #7f8c9d; font-size: 13px;">奖池: ${item.pool} USDT</div>
-                        <button class="bet-btn" onclick="openCheckout()">参与预测</button>
-                    </div>
-                `).join('');
+            try {
+                const { data, error } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+
+                const listDiv = document.getElementById('market-list');
+                if (data && data.length > 0) {
+                    listDiv.innerHTML = data.map(item => `
+                        <div class="market-card">
+                            <div class="market-topic">📊 ${item.topic || '话题'}</div>
+                            <div class="pool-info">奖池: ${item.pool || 0} USDT</div>
+                            <button class="bet-btn" onclick="openCheckout()">参与预测</button>
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = '<div style="text-align:center; color:#555; padding:20px;">暂无数据，请在后台添加数据进行测试。</div>';
+                }
+            } catch (err) {
+                console.error("加载失败:", err.message);
+                document.getElementById('market-list').innerHTML = '<div style="color:red; text-align:center;">数据加载失败，请检查 RLS 设置。</div>';
             }
         }
 
         // 打开收银台
         function openCheckout() {
             tg.HapticFeedback.impactOccurred('medium');
-            document.getElementById('checkout-modal').style.display = 'flex';
+            const modal = document.getElementById('checkout-modal');
+            modal.style.display = 'flex';
+            
+            // 恢复默认金额并聚焦
+            const input = document.getElementById('pay-amount-input');
+            input.value = "0.1";
+            
             document.getElementById('target-address').innerText = RECEIVER_ADDR;
             
             // 生成二维码
@@ -135,7 +179,7 @@
             qrDiv.innerHTML = "";
             new QRCode(qrDiv, { text: RECEIVER_ADDR, width: 140, height: 140 });
             
-            startTimer(900); // 15分钟倒计时
+            startTimer(900); // 15分钟
         }
 
         function closeCheckout() {
@@ -144,16 +188,22 @@
 
         // 调用 OKX (Deep Link)
         function invokeOKX() {
-            const amount = 0.11;
+            // 获取用户手输的金额
+            const amount = document.getElementById('pay-amount-input').value || 0.1;
+            
+            if (amount < 0.1) {
+                tg.showAlert("金额不能低于 0.1 USDT");
+                return;
+            }
+
             // 构造 OKX 深度链接
             const okxUrl = `okx://main/wallet/transfer?dest=${RECEIVER_ADDR}&chain=tron&symbol=usdt&amount=${amount}`;
             
             tg.openLink(okxUrl, { try_instant_view: false });
             
-            // 如果 openLink 没反应，可能是协议不支持，提示用户
             setTimeout(() => {
-                tg.showAlert("如果未自动跳转，请确保手机已安装 OKX App，或使用下方复制地址功能。");
-            }, 1000);
+                tg.showAlert("如果未自动跳转，请确保手机已安装 OKX App，或使用复制地址功能。");
+            }, 1200);
         }
 
         function copyAddress() {
@@ -166,21 +216,26 @@
             tg.showAlert("地址已复制到剪贴板");
         }
 
+        // 倒计时
+        let timerInterval;
         function startTimer(duration) {
+            clearInterval(timerInterval);
             let timer = duration, minutes, seconds;
             const display = document.getElementById('countdown');
-            const interval = setInterval(function () {
+            timerInterval = setInterval(function () {
                 minutes = parseInt(timer / 60, 10);
                 seconds = parseInt(timer % 60, 10);
                 minutes = minutes < 10 ? "0" + minutes : minutes;
                 seconds = seconds < 10 ? "0" + seconds : seconds;
                 display.textContent = minutes + ":" + seconds;
-                if (--timer < 0) clearInterval(interval);
+                if (--timer < 0) clearInterval(timerInterval);
             }, 1000);
         }
 
+        // 初始化
         window.onload = () => {
             tg.ready();
+            tg.expand();
             loadMarkets();
         };
     </script>
