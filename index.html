@@ -9,70 +9,72 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         :root {
-            --bg-main: #f4f4f7; /* 浅灰色背景 */
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-dim: #909399;
-            --border-color: #e4e7ed;
-            --accent-blue: #409eff;
+            --bg-dark: #000000; /* 纯黑底色 */
+            --card-bg: #111111; /* 深灰色卡片 */
+            --btn-gray: #e0e0e0; /* 按钮浅灰色 */
+            --gold: #d4af37;    /* 商务金点缀 */
+            --text-white: #ffffff;
+            --text-dim: #888888;
         }
 
         body { 
-            background: var(--bg-main); color: var(--text-main); 
-            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--bg-dark); color: var(--text-white); 
+            font-family: -apple-system, sans-serif;
             margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
         }
 
-        .app-container { width: 100%; max-width: 500px; padding: 20px; padding-bottom: 100px; }
+        .app-container { width: 100%; max-width: 500px; padding: 20px; padding-bottom: 120px; }
 
-        /* 1 & 2. 标题颜色统一，删除图标 */
-        .header { display: flex; justify-content: center; align-items: center; margin: 20px 0 30px; }
-        .brand { font-size: 20px; font-weight: 800; color: #333; letter-spacing: 1px; }
+        /* 标题统一颜色，移除图标 */
+        .header { display: flex; justify-content: center; align-items: center; margin: 30px 0; }
+        .brand { font-size: 22px; font-weight: 800; color: var(--gold); letter-spacing: 2px; }
 
-        /* 3. 账户余额改为连接钱包卡片 */
+        /* 连接钱包引导卡片 */
         .wallet-card {
-            background: var(--card-bg); border-radius: 20px; padding: 30px 20px;
+            background: var(--card-bg); border-radius: 20px; padding: 25px;
             margin-bottom: 24px; text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
+            border: 1px solid #222;
         }
         .wallet-title { font-size: 14px; color: var(--text-dim); margin-bottom: 15px; }
         #ton-connect-btn { display: flex; justify-content: center; }
 
-        .section-title { font-size: 15px; font-weight: 700; color: var(--text-dim); margin-bottom: 15px; padding-left: 5px; }
+        .section-title { font-size: 14px; font-weight: 600; color: var(--gold); margin-bottom: 15px; text-transform: uppercase; }
 
         /* 项目列表 */
         .market-item {
-            background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 12px;
-            border: 1px solid var(--border-color);
+            background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px;
+            border: 1px solid #222;
         }
-        .market-topic { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #1a1a1a; }
+        .market-topic { font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--text-white); }
         
-        /* 5. 投票百分比显示 */
-        .vote-stats { display: flex; gap: 10px; margin-bottom: 15px; }
+        /* Yes/No 百分比条 */
+        .vote-stats { display: flex; gap: 10px; margin-bottom: 20px; }
         .vote-bar { 
-            flex: 1; background: #f0f2f5; height: 36px; border-radius: 8px; 
+            flex: 1; background: #222; height: 40px; border-radius: 10px; 
             display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 600; color: #606266; position: relative; overflow: hidden;
+            font-size: 13px; font-weight: 700; position: relative; overflow: hidden;
         }
-        .vote-fill { position: absolute; left: 0; top: 0; height: 100%; z-index: 1; transition: width 0.3s; }
-        .yes-fill { background: rgba(103, 194, 58, 0.15); color: #67c23a; }
-        .no-fill { background: rgba(245, 108, 108, 0.15); color: #f56c6c; }
+        .vote-fill { position: absolute; left: 0; top: 0; height: 100%; transition: width 0.3s; opacity: 0.3; }
+        .yes-fill { background: #00ff00; }
+        .no-fill { background: #ff0000; }
         .vote-label { z-index: 2; }
+        .vote-label.yes { color: #00ff00; }
+        .vote-label.no { color: #ff4d4d; }
 
+        /* 参与按钮改为浅灰色 */
         .btn-join {
-            width: 100%; background: #1a1a1a; color: white; border: none;
-            padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600;
+            width: 100%; background: var(--btn-gray); color: #000; border: none;
+            padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700;
         }
 
-        /* 底部固定按钮 */
+        /* 底部发起预测按钮 */
         .fixed-footer {
-            position: fixed; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 100;
+            position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000;
         }
         .btn-create {
-            width: 90%; max-width: 450px; background: #409eff; color: white; border: none;
-            padding: 16px; border-radius: 15px; font-size: 16px; font-weight: 700;
-            box-shadow: 0 4px 15px rgba(64,158,255,0.3);
+            width: 90%; max-width: 450px; background: var(--btn-gray); color: #000; border: none;
+            padding: 18px; border-radius: 18px; font-size: 16px; font-weight: 800;
+            box-shadow: 0 4px 20px rgba(255,255,255,0.1);
         }
     </style>
 </head>
@@ -84,11 +86,11 @@
         </div>
 
         <div class="wallet-card">
-            <div class="wallet-title">连接钱包参与市场</div>
+            <div class="wallet-title">请连接 TON 钱包参与预测</div>
             <div id="ton-connect-btn"></div>
         </div>
 
-        <div class="section-title">活跃预测</div>
+        <div class="section-title">实时预测榜单</div>
         <div id="market-list"></div>
     </div>
 
@@ -99,7 +101,6 @@
     <script>
         const tg = window.Telegram.WebApp;
         
-        // 初始化 TON Connect
         const tonConnectUI = new TONConnectUI.TonConnectUI({
             manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-btn'
@@ -109,14 +110,12 @@
         const SB_KEY = "sb_publishable_6mBG3xWhYAHCOEmNIG4BEA_wh5O2Ayx";
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        // 加载列表并显示百分比
         async function loadMarkets() {
-            const { data, error } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
+            const { data } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
             const listDiv = document.getElementById('market-list');
             
             if (data) {
                 listDiv.innerHTML = data.map(item => {
-                    // 模拟百分比计算 (实际应根据数据库 yes_votes 和 no_votes 计算)
                     const yesPercent = item.yes_percent || 50;
                     const noPercent = 100 - yesPercent;
                     
@@ -126,11 +125,11 @@
                         <div class="vote-stats">
                             <div class="vote-bar">
                                 <div class="vote-fill yes-fill" style="width: ${yesPercent}%"></div>
-                                <span class="vote-label">Yes ${yesPercent}%</span>
+                                <span class="vote-label yes">Yes ${yesPercent}%</span>
                             </div>
                             <div class="vote-bar">
                                 <div class="vote-fill no-fill" style="width: ${noPercent}%"></div>
-                                <span class="vote-label">No ${noPercent}%</span>
+                                <span class="vote-label no">No ${noPercent}%</span>
                             </div>
                         </div>
                         <button class="btn-join" onclick="handleBet('${item.id}')">立即参与</button>
@@ -140,25 +139,23 @@
             }
         }
 
-        // 4. 修复点击没反应：使用显式监听器
+        // 按钮交互修复
         document.getElementById('main-create-btn').addEventListener('click', () => {
             tg.HapticFeedback.impactOccurred('medium');
             if (!tonConnectUI.connected) {
-                tg.showAlert("请先点击上方连接钱包");
+                tg.showAlert("请先连接钱包");
             } else {
-                tg.showAlert("发起预测功能正在同步数据...");
+                tg.showAlert("功能对接中，请稍候...");
             }
         });
 
         async function handleBet(marketId) {
             tg.HapticFeedback.selectionChanged();
             if (!tonConnectUI.connected) {
-                tg.showConfirm("需要连接钱包才能参与，现在连接吗？", (res) => {
-                    if(res) tonConnectUI.openModal();
-                });
-                return;
+                tonConnectUI.openModal();
+            } else {
+                tg.showAlert("正在唤起 TON 支付...");
             }
-            // 支付逻辑...
         }
 
         window.onload = () => {
