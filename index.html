@@ -3,195 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>中国预测市场</title>
+    <title>中国预测市场 | TON 版</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode_js@1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         :root {
-            --primary: #00d287;
+            --primary: #00d287; /* 恢复图一亮绿色 */
             --bg: #0e1621;
             --card-bg: #17212b;
             --text-main: #ffffff;
             --text-dim: #81b3d2;
-            --font-round: "PingFang SC", "Microsoft YaHei", sans-serif;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
-            background: var(--bg); color: var(--text-main); font-family: var(--font-round); 
+            background: var(--bg); color: var(--text-main); font-family: sans-serif;
             margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* 界面样式保持图一高级感 */
-        .app-container { width: 100%; max-width: 500px; padding: 18px; padding-bottom: 120px; }
-        .brand { font-size: 18px; font-weight: 700; text-align: center; margin: 15px 0 25px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .app-container { width: 100%; max-width: 500px; padding: 18px; }
+        
+        /* 保持图一的顶部设计 */
+        .header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
+        .brand { font-size: 18px; font-weight: 700; }
         .brand span { color: var(--text-dim); }
 
+        /* 资产卡片 */
+        .balance-card {
+            background: linear-gradient(135deg, #1c3a5a 0%, #0e1621 100%);
+            border-radius: 25px; padding: 25px; margin-bottom: 25px; width: 100%;
+        }
+        .balance-title { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+        .balance-value { font-size: 32px; font-weight: 800; }
+
+        /* 列表卡片 */
         .market-card {
             background: var(--card-bg); border-radius: 25px;
             padding: 24px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.03);
         }
-        
-        .market-topic { font-size: 19px; font-weight: 700; margin-bottom: 15px; }
+        .market-topic { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
         .pool-info { font-size: 14px; color: var(--text-dim); margin-bottom: 20px; }
         
         .bet-btn { 
             width: 100%; background: var(--primary); color: #000; border: none; 
             padding: 16px; border-radius: 18px; font-size: 16px; font-weight: 700; 
-            box-shadow: 0 4px 15px rgba(0,210,135,0.2); cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,210,135,0.2);
         }
 
-        /* 收银台样式 (方案 B) */
-        #checkout-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
-            display: none; justify-content: center; align-items: flex-end; z-index: 2000;
+        /* 底部固定按钮 */
+        .footer-action {
+            position: fixed; bottom: 20px; width: 90%; max-width: 450px;
+            background: #248bcf; color: white; border: none; padding: 18px;
+            border-radius: 20px; font-weight: 700; font-size: 16px;
         }
-        .checkout-content {
-            background: #ffffff; color: #333; width: 100%; max-width: 500px;
-            border-top-left-radius: 30px; border-top-right-radius: 30px;
-            padding: 24px 24px 40px; position: relative; animation: slideUp 0.3s ease-out;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .checkout-header { text-align: center; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .checkout-title { font-size: 18px; font-weight: 800; color: #111; }
-        .timer { color: #ff4d4f; font-weight: 700; background: #fff1f0; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
-
-        .amount-section { text-align: center; margin: 15px 0 25px; }
-        .amount-input-wrapper {
-            display: flex; align-items: baseline; justify-content: center; 
-            border-bottom: 2px solid #eee; width: 80%; margin: 0 auto 8px; padding-bottom: 5px;
-        }
-        .amount-input {
-            border: none; outline: none; background: none; width: 100%;
-            font-size: 42px; font-weight: 800; color: #111; text-align: center; padding: 0;
-        }
-        .amount-unit { font-size: 18px; color: #111; font-weight: 600; margin-left: 5px; }
-
-        .address-box { background: #f5f7f9; border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px dashed #cbd5e0; }
-        .address-text { font-family: monospace; font-size: 13px; word-break: break-all; color: #4a5568; line-height: 1.4; }
-
-        .qr-container { display: flex; justify-content: center; margin-bottom: 20px; }
-        #qrcode img { border: 8px solid #fff; border-radius: 10px; }
-
-        .action-btns { display: flex; flex-direction: column; gap: 12px; }
-        .btn-okx { background: #000; color: #fff; border: none; padding: 18px; border-radius: 16px; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-copy { background: #edf2f7; color: #2d3748; border: none; padding: 18px; border-radius: 16px; font-weight: 700; }
-        
-        .network-hint { font-size: 12px; color: #ff4d4f; text-align: center; background: #fff1f0; padding: 8px; border-radius: 10px; margin-bottom: 15px; font-weight: 600; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div class="brand">🚀 中国<span>预测市场</span></div>
-        <div id="market-list"></div>
-    </div>
+        <div class="header">
+            <div class="brand">🚀 中国<span>预测市场</span></div>
+            <div id="ton-connect"></div> </div>
 
-    <div id="checkout-modal">
-        <div class="checkout-content">
-            <div class="checkout-header">
-                <div class="checkout-title">数字货币支付</div>
-                <span class="timer" id="countdown">14:59</span>
-            </div>
-
-            <div class="amount-section">
-                <div style="font-size: 14px; color: #718096; margin-bottom: 10px;">请输入支付金额</div>
-                <div class="amount-input-wrapper">
-                    <input type="number" class="amount-input" id="pay-amount-input" placeholder="10.00" step="0.01">
-                    <span class="amount-unit">USDT</span>
-                </div>
-            </div>
-
-            <div class="network-hint">⚠️ 重要：仅支持 TRON (TRC20) 网络，请勿选错</div>
-
-            <div class="qr-container" id="qrcode"></div>
-
-            <div class="address-box">
-                <div style="font-size: 12px; color: #a0aec0; margin-bottom: 6px;">收款地址 (TRC20/Tron)</div>
-                <div class="address-text" id="target-address">TBtiMEoCUdgyQiZVzTagmKEk3RZQPbzzYJ</div>
-            </div>
-
-            <div class="action-btns">
-                <button class="btn-okx" onclick="invokeOKX()">⚡ 唤起 OKX 支付</button>
-                <button class="btn-copy" onclick="copyAddress()">复制收款地址</button>
-                <div style="text-align:center; color:#a0aec0; font-size:13px; margin-top:10px; cursor:pointer;" onclick="closeCheckout()">返回主页</div>
-            </div>
+        <div class="balance-card">
+            <div class="balance-title">账户余额 (TON)</div>
+            <div class="balance-value">0.00 <span>TON</span></div>
         </div>
+
+        <div id="market-list">
+            </div>
+
+        <button class="footer-action" onclick="createNewMarket()">
+            发起新预测 (0.1 TON)
+        </button>
     </div>
 
     <script>
+        const tg = window.Telegram.WebApp;
+        const tonConnectUI = new TONConnectUI.TonConnectUI({
+            manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+
         const SB_URL = "https://kfalyawduveuuttniiun.supabase.co";
         const SB_KEY = "sb_publishable_6mBG3xWhYAHCOEmNIG4BEA_wh5O2Ayx";
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-        const tg = window.Telegram.WebApp;
 
-        // 使用您最新的真实地址
-        const RECEIVER_ADDR = "TBtiMEoCUdgyQiZVzTagmKEk3RZQPbzzYJ"; 
-
+        // 加载项目列表
         async function loadMarkets() {
             const { data } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
             if (data) {
                 document.getElementById('market-list').innerHTML = data.map(item => `
                     <div class="market-card">
-                        <div class="market-topic">📊 ${item.topic || '话题'}</div>
-                        <div class="pool-info">总奖池: ${item.pool || 0} USDT</div>
-                        <button class="bet-btn" onclick="openCheckout()">参与预测</button>
+                        <div class="market-topic">📊 ${item.topic}</div>
+                        <div class="pool-info">总奖池: ${item.pool || 0.1} TON</div>
+                        <button class="bet-btn" onclick="payWithTon(0.1)">参与预测</button>
                     </div>
                 `).join('');
             }
         }
 
-        function openCheckout() {
-            tg.HapticFeedback.impactOccurred('medium');
-            document.getElementById('checkout-modal').style.display = 'flex';
-            document.getElementById('pay-amount-input').value = ""; // 清空让用户手输
-            
-            const qrDiv = document.getElementById("qrcode");
-            qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: RECEIVER_ADDR, width: 160, height: 160 });
-            
-            startTimer(900);
-        }
-
-        function closeCheckout() {
-            document.getElementById('checkout-modal').style.display = 'none';
-        }
-
-        function invokeOKX() {
-            const amount = document.getElementById('pay-amount-input').value;
-            if (!amount || amount <= 0) {
-                tg.showAlert("请输入有效金额");
+        // TON 支付核心逻辑
+        async function payWithTon(amount) {
+            if (!tonConnectUI.connected) {
+                tg.showAlert("请先点击右上角连接 TON 钱包");
                 return;
             }
-            // 构造标准跳转协议
-            const okxUrl = `okx://main/wallet/transfer?dest=${RECEIVER_ADDR}&chain=tron&symbol=usdt&amount=${amount}`;
-            tg.openLink(okxUrl);
-        }
 
-        function copyAddress() {
-            const el = document.createElement('textarea');
-            el.value = RECEIVER_ADDR;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            tg.showAlert("地址已复制，请在钱包选择 Tron (TRC20) 网络发送");
-        }
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 60, // 60秒有效
+                messages: [
+                    {
+                        address: "这里填你的TON钱包地址", 
+                        amount: (amount * 1000000000).toString() // 转换为 nanoTON
+                    }
+                ]
+            };
 
-        let timerInterval;
-        function startTimer(duration) {
-            clearInterval(timerInterval);
-            let timer = duration, minutes, seconds;
-            const display = document.getElementById('countdown');
-            timerInterval = setInterval(() => {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
-                display.textContent = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                if (--timer < 0) clearInterval(timerInterval);
-            }, 1000);
+            try {
+                tg.HapticFeedback.impactOccurred('heavy');
+                await tonConnectUI.sendTransaction(transaction);
+                tg.showAlert("支付成功！已参与预测。");
+                // 支付成功后可以在这里处理业务逻辑
+            } catch (e) {
+                console.error(e);
+                tg.showAlert("支付已取消或失败");
+            }
         }
 
         window.onload = () => {
