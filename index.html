@@ -6,25 +6,52 @@
     <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #0d1117; color: #e6edf3; font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .logo { font-size: 48px; margin-bottom: 8px; }
-        .market-card { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-        h2 { color: #d4af37; margin: 0 0 15px 0; }
-        .stats { display: flex; justify-content: space-between; color: #8b949e; font-size: 0.95rem; }
-        .btn-group { display: flex; gap: 12px; margin-top: 20px; }
-        button { flex: 1; padding: 16px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; }
+        body { 
+            background-color: #0d1117; 
+            color: #e6edf3; 
+            font-family: -apple-system, system-ui, sans-serif; 
+            margin: 0; 
+            padding: 16px; 
+        }
+        .header { text-align: center; margin-bottom: 24px; }
+        .logo { font-size: 52px; }
+        .market-card { 
+            background: #161b22; 
+            border: 1px solid #30363d; 
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+        }
+        h2 { color: #d4af37; margin: 0 0 12px 0; font-size: 1.25rem; }
+        .stats { display: flex; justify-content: space-between; color: #8b949e; margin: 12px 0; }
+        .btn-group { display: flex; gap: 12px; margin: 20px 0; }
+        button { 
+            flex: 1; 
+            padding: 16px; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+        }
         .btn-yes { background: #238636; color: white; }
         .btn-no { background: #da3633; color: white; }
-        .wallet-btn { background: #58a6ff; color: white; margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; }
-        .address-box { background: #010409; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.85rem; word-break: break-all; border: 1px dashed #30363d; }
+        .wallet-btn { 
+            background: #58a6ff; 
+            color: white; 
+            padding: 16px; 
+            border-radius: 12px; 
+            text-align: center; 
+            font-weight: bold; 
+            margin: 12px 0; 
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="logo">♾️</div>
         <h1>中国预测市场</h1>
-        <p style="color:#8b949e;">去中心化 · 链上结算 · 公平透明</p >
+        <p style="color:#8b949e; margin-top:4px;">去中心化 · 链上结算</p >
     </div>
 
     <div class="market-card">
@@ -40,33 +67,31 @@
         </div>
 
         <div onclick="connectWallet()" class="wallet-btn">
-            连接 Phantom 钱包下注
-        </div>
-
-        <div class="address-box">
-            <strong>当前市场地址（示例）：</strong><br>
-            <span id="contract">即将上链...</span>
+            🔗 连接 Phantom 钱包下注
         </div>
     </div>
 
     <script>
-        // Telegram Mini App 初始化
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
+        // 初始化 Telegram Mini App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();           // 让页面占满整个 Telegram 窗口
+        tg.MainButton.hide();  // 隐藏底部按钮
 
         function connectWallet() {
-            alert("正在连接 Phantom 钱包...\n\n（后续会接入真实钱包功能）");
-            // 未来这里会接入 Phantom SDK
+            tg.showAlert("正在连接 Phantom 钱包...\n\n（开发中，很快就能真实下注）");
         }
 
         function bet(side) {
-            if (confirm(`确定要下注 ${side} 吗？\n\n资金将直接进入智能合约（去中心化）`)) {
-                alert(`已提交 ${side} 下注请求！\n\n（后续会弹出钱包确认）`);
-            }
+            tg.showConfirm(`确定要下注 ${side} 吗？`, function(confirmed) {
+                if (confirmed) {
+                    tg.showAlert(`✅ 已提交 ${side} 下注！\n\n资金将进入智能合约`);
+                }
+            });
         }
 
-        // 显示 Telegram 用户信息（可选）
-        console.log("Telegram WebApp 已启动");
+        // 显示用户名称（可选）
+        console.log("欢迎", tg.initDataUnsafe?.user?.first_name || "用户");
     </script>
 </body>
 </html>
