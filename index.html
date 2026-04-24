@@ -1,44 +1,71 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中国预测市场</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #248bcf;
-            --bg: #0e1621;
-            --card: #17212b;
-        }
         body {
-            background: var(--bg);
+            background: #0e1621;
             color: white;
             font-family: -apple-system, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header {
-            margin-bottom: 20px;
             text-align: center;
+            padding: 40px 20px;
+            margin: 0;
         }
-        .status-badge {
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: #23313d;
-            color: #81b3d2;
-            margin-top: 8px;
-            display: inline-block;
+        h1 { font-size: 38px; margin: 30px 0 10px; }
+        p { color: #81b3d2; }
+        button {
+            background: #248bcf;
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            font-size: 17px;
+            border-radius: 12px;
+            margin: 15px auto;
+            display: block;
+            width: 90%;
+            max-width: 360px;
+            cursor: pointer;
+        }
+        .card {
+            background: #17212b;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px auto;
+            max-width: 360px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 中国预测市场</h1>
+    <p>Polymarket China</p >
+
+    <button onclick="alert('TON 钱包连接功能开发中...')">🔗 连接 TON 钱包</button>
+    <button onclick="publish()">📝 发起新预测</button>
+
+    <div id="list" style="margin-top:30px;"></div>
+
+    <script>
+        async function publish() {
+            const topic = prompt("请输入预测话题：");
+            if (topic) {
+                alert("✅ 发布成功！（模拟）\n话题：" + topic);
+                loadList();
+            }
         }
 
-        .btn-group {
-            width: 100%;
-            max-width: 400px;
-            display: grid;
-            gap: 10px;
+        function loadList() {
+            document.getElementById('list').innerHTML = `
+                <div class="card">
+                    <strong>欢迎使用</strong><br>
+                    <small>数据共享已打通，功能正在完善中...</small>
+                </div>
+            `;
+        }
+
+        window.onload = loadList;
+    </script>
+</body>
+</html>
