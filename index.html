@@ -1,204 +1,189 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <title>Interface Connectivity Test</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中国预测市场 | 决策未来</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-      :root {
-        --primary: #248bcf;
-        --bg: #0e1621;
-        --card: #17212b;
-      }
-      body {
-        background: var(--bg);
-        color: white;
-        font-family: -apple-system, sans-serif;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .header {
-        margin-bottom: 20px;
-        text-align: center;
-      }
-      .status-badge {
-        font-size: 12px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: #23313d;
-        color: #81b3d2;
-        margin-top: 8px;
-        display: inline-block;
-      }
-
-      .btn-group {
-        width: 100%;
-        max-width: 400px;
-        display: grid;
-        gap: 10px;
-        margin-bottom: 20px;
-      }
-      button {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        font-size: 14px;
-        transition: 0.2s;
-      }
-      button:active {
-        transform: scale(0.98);
-        opacity: 0.8;
-      }
-      button.wallet-btn {
-        background: #31a6f5;
-      }
-
-      .data-container {
-        width: 100%;
-        max-width: 400px;
-      }
-      .card {
-        background: var(--card);
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        border-left: 4px solid var(--primary);
-        animation: fadeIn 0.5s ease;
-      }
-      .card-title {
-        font-weight: bold;
-        font-size: 16px;
-        margin-bottom: 5px;
-      }
-      .card-meta {
-        font-size: 13px;
-        color: #81b3d2;
-      }
-
-      #error-log {
-        width: 100%;
-        max-width: 400px;
-        color: #ff5f5f;
-        font-size: 12px;
-        background: rgba(255, 95, 95, 0.1);
-        padding: 10px;
-        border-radius: 8px;
-        display: none;
-        margin-top: 10px;
-        word-break: break-all;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
+        :root {
+            --bg: #0e1621;
+            --card-bg: #17212b;
+            --primary: #248bcf;
+            --accent: #f5a623; /* 强调色：橙色，更有金融感 */
+            --success: #44bb44;
+            --text-main: #ffffff;
+            --text-dim: #81b3d2;
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            background: var(--bg); color: var(--text-main); 
+            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
         }
-      }
+
+        /* 顶部导航 */
+        .top-nav {
+            width: 100%; max-width: 500px; padding: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; background: rgba(14, 22, 33, 0.9); backdrop-filter: blur(10px); z-index: 100;
+        }
+        .brand { font-size: 18px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .brand span { color: var(--primary); }
+
+        /* 资产概览卡片 */
+        .wallet-card {
+            width: calc(100% - 32px); max-width: 468px;
+            background: linear-gradient(135deg, #1d2b3a 0%, #248bcf 100%);
+            margin: 10px 16px 24px; padding: 24px; border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .wallet-label { font-size: 13px; opacity: 0.8; margin-bottom: 4px; }
+        .wallet-balance { font-size: 32px; font-weight: 800; display: flex; align-items: baseline; }
+        .wallet-balance small { font-size: 16px; margin-left: 6px; font-weight: 400; }
+
+        /* 预测市场列表 */
+        .market-section { width: 100%; max-width: 500px; padding: 0 16px 120px; }
+        .section-header { font-size: 14px; font-weight: 600; color: var(--text-dim); margin-bottom: 16px; display: flex; justify-content: space-between; }
+
+        .market-card {
+            background: var(--card-bg); border-radius: 18px; padding: 20px; margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.05); position: relative; transition: 0.2s;
+        }
+        .market-card:active { transform: scale(0.98); background: #1c2733; }
+        .market-topic { font-size: 17px; font-weight: 700; margin-bottom: 12px; line-height: 1.4; }
+        .market-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); pt: 12px; margin-top: 12px; }
+        .pool-info { font-size: 13px; color: var(--text-dim); }
+        .pool-info b { color: var(--accent); font-size: 15px; }
+        .bet-btn { background: rgba(36, 139, 207, 0.15); color: var(--primary); border: none; padding: 6px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+
+        /* 底部动作条 */
+        .action-bar {
+            position: fixed; bottom: 20px; width: calc(100% - 32px); max-width: 468px;
+            display: flex; gap: 12px;
+        }
+        .btn-main {
+            flex: 1; background: var(--primary); color: white; border: none;
+            padding: 18px; border-radius: 20px; font-size: 16px; font-weight: 700;
+            box-shadow: 0 8px 20px rgba(36, 139, 207, 0.4); display: flex; justify-content: center; align-items: center;
+        }
+
+        .loader { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
-  </head>
-  <body>
-    <div class="header">
-      <h2>系统模块连通测试</h2>
-      <div id="connection-status" class="status-badge">正在检查环境...</div>
+</head>
+<body>
+
+    <div class="top-nav">
+        <div class="brand">🚀 中国<span>预测市场</span></div>
+        <div id="user-pill" style="font-size: 12px; color: var(--text-dim);">账号同步中...</div>
     </div>
 
-    <div class="btn-group">
-      <button class="wallet-btn" onclick="connectWallet()">检测钱包插件</button>
-      <button onclick="fetchData()">刷新 API 数据</button>
+    <div class="wallet-card">
+        <div class="wallet-label">账户余额 (TON)</div>
+        <div class="wallet-balance" id="balance">0.00 <small>TON</small></div>
     </div>
 
-    <div id="error-log"></div>
+    <div class="market-section">
+        <div class="section-header">
+            <span>🔥 热门预测项目</span>
+            <span id="sync-status" style="color: var(--success);">● 实时同步中</span>
+        </div>
+        <div id="market-list">
+            </div>
+    </div>
 
-    <div class="data-container" id="list-container"></div>
+    <div class="action-bar">
+        <button class="btn-main" onclick="openCreateModal()">
+            <span id="btn-text">发起新预测 (0.1 TON)</span>
+            <div class="loader" id="btn-loader"></div>
+        </button>
+    </div>
 
     <script>
-      // 1. 基础配置 (请检查 URL 和 KEY)
-      const SB_URL = "https://kfalyawduveuuttniiun.supabase.co";
-      const SB_KEY = "sb_publishable_6mBG3xWhYAHCOEmNIG4BEA_wh5O2Ayx";
+        const SB_URL = "https://kfalyawduveuuttniiun.supabase.co";
+        const SB_KEY = "sb_publishable_6mBG3xWhYAHCOEmNIG4BEA_wh5O2Ayx"; // 确保这是你的最新 Anon Key
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-      const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-      // 2. 模拟钱包连接逻辑
-      function connectWallet() {
-        if (window.Telegram && window.Telegram.WebApp) {
-          const user = window.Telegram.WebApp.initDataUnsafe.user;
-          alert(
-            user
-              ? `检测到用户: ${user.first_name}`
-              : "请在 Telegram 环境下打开以测试钱包模块",
-          );
-        } else {
-          alert("非 Telegram 环境，模拟钱包检测中...");
+        // 1. 初始化用户信息
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            document.getElementById('user-pill').innerText = user.first_name + " (已连接)";
         }
-      }
 
-      // 3. 数据拉取核心逻辑 (朋友需要重点调试这里)
-      async function fetchData() {
-        const statusBox = document.getElementById("connection-status");
-        const errorBox = document.getElementById("error-log");
-        const listContainer = document.getElementById("list-container");
+        // 2. 加载市场数据
+        async function loadMarkets() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('markets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-        statusBox.innerText = "正在请求数据...";
-        errorBox.style.display = "none";
+                if (error) throw error;
 
-        try {
-          // 重点：如果 Supabase 后台没有开启 CORS，这一步会触发 Failed to fetch
-          const { data, error } = await supabaseClient
-            .from("markets")
-            .select("*")
-            .order("id", { ascending: false });
-
-          if (error) throw error;
-
-          statusBox.innerText = "✅ API 通信正常";
-
-          if (data && data.length > 0) {
-            listContainer.innerHTML = data
-              .map(
-                (item) => `
-                        <div class="card">
-                            <div class="card-title">数据项: ${item.topic || "未命名"}</div>
-                            <div class="card-meta">数值参数: ${item.pool || 0} units</div>
+                const listDiv = document.getElementById('market-list');
+                listDiv.innerHTML = data.map(item => `
+                    <div class="market-card">
+                        <div class="market-topic">📊 ${item.topic || '未知话题'}</div>
+                        <div class="market-footer">
+                            <div class="pool-info">总奖池 <b>${item.pool || 0}</b> TON</div>
+                            <button class="bet-btn" onclick="placeBet('${item.id}')">参与预测</button>
                         </div>
-                    `,
-              )
-              .join("");
-          } else {
-            listContainer.innerHTML =
-              '<div style="color:#666">连接成功，但数据库返回空列表。</div>';
-          }
-        } catch (err) {
-          statusBox.innerText = "❌ 接口通信拦截";
-          errorBox.style.display = "block";
-          errorBox.innerHTML = `<strong>技术细节:</strong><br>${err.message}<br><br>建议检查: Supabase -> Settings -> API -> Allow All Origins 是否设置为 *`;
-          console.error("Fetch Error:", err);
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("数据加载失败:", err.message);
+            }
         }
-      }
 
-      // 初始化加载
-      window.onload = () => {
-        if (window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.ready();
-          window.Telegram.WebApp.expand();
+        // 3. 发起新预测 (逻辑预留：支付成功后调用)
+        async function createNewMarket() {
+            const btnText = document.getElementById('btn-text');
+            const btnLoader = document.getElementById('btn-loader');
+            
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'block';
+
+            try {
+                // 提示：此处未来应先调用钱包支付接口，成功后再插入数据库
+                const topic = prompt("请输入您要发起的预测话题：");
+                if (!topic) return;
+
+                const { error } = await supabaseClient
+                    .from('markets')
+                    .insert([{ topic: topic, pool: 0.1 }]);
+
+                if (error) throw error;
+                
+                tg.HapticFeedback.notificationOccurred('success');
+                await loadMarkets();
+            } catch (err) {
+                alert("发起失败: " + err.message);
+            } finally {
+                btnText.style.display = 'block';
+                btnLoader.style.display = 'none';
+            }
         }
-        fetchData();
-      };
+
+        function openCreateModal() {
+            tg.showConfirm("发起新预测将消耗 0.1 TON，确定继续吗？", (confirmed) => {
+                if (confirmed) createNewMarket();
+            });
+        }
+
+        function placeBet(id) {
+            tg.HapticFeedback.impactOccurred('light');
+            alert("参与预测功能正在对接智能合约...");
+        }
+
+        // 初始加载
+        window.onload = loadMarkets;
     </script>
-  </body>
+</body>
 </html>
