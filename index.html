@@ -2,70 +2,69 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>中国预测市场</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             background: #0e1621;
             color: white;
-            font-family: -apple-system, sans-serif;
-            text-align: center;
-            padding: 40px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
+            padding: 20px;
+            text-align: center;
         }
-        h1 { font-size: 38px; margin: 30px 0 10px; }
-        p { color: #81b3d2; }
+        .header {
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 36px;
+            margin: 10px 0 8px 0;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #81b3d2;
+            margin: 0 0 30px 0;
+        }
         button {
             background: #248bcf;
             color: white;
             border: none;
-            padding: 16px 30px;
-            font-size: 17px;
+            padding: 16px;
+            width: 100%;
+            max-width: 380px;
             border-radius: 12px;
-            margin: 15px auto;
+            font-weight: bold;
+            font-size: 17px;
+            margin: 12px auto;
             display: block;
-            width: 90%;
-            max-width: 360px;
             cursor: pointer;
         }
         .card {
             background: #17212b;
-            padding: 20px;
+            padding: 18px;
             border-radius: 12px;
-            margin: 20px auto;
-            max-width: 360px;
+            margin: 15px auto;
+            max-width: 380px;
             text-align: left;
+            border-left: 4px solid #248bcf;
         }
     </style>
 </head>
 <body>
-    <h1>🚀 中国预测市场</h1>
-    <p>Polymarket China</p >
+    <div class="header">
+        <h1>中国预测市场</h1>
+        <div class="subtitle">Polymarket China</div>
+    </div>
 
-    <button onclick="alert('TON 钱包连接功能开发中...')">🔗 连接 TON 钱包</button>
+    <button onclick="connectWallet()">🔗 连接 TON 钱包</button>
     <button onclick="publish()">📝 发起新预测</button>
 
-    <div id="list" style="margin-top:30px;"></div>
+    <div id="list" style="margin-top: 30px;"></div>
 
     <script>
-        async function publish() {
-            const topic = prompt("请输入预测话题：");
-            if (topic) {
-                alert("✅ 发布成功！（模拟）\n话题：" + topic);
-                loadList();
-            }
-        }
-
-        function loadList() {
-            document.getElementById('list').innerHTML = `
-                <div class="card">
-                    <strong>欢迎使用</strong><br>
-                    <small>数据共享已打通，功能正在完善中...</small>
-                </div>
-            `;
-        }
-
-        window.onload = loadList;
-    </script>
-</body>
-</html>
+        // Supabase 配置
+        const supabaseClient = supabase.createClient(
+            'https://kfalyawduveuuttniun.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc
