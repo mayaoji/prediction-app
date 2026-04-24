@@ -1,204 +1,44 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <title>Interface Connectivity Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-      :root {
-        --primary: #248bcf;
-        --bg: #0e1621;
-        --card: #17212b;
-      }
-      body {
-        background: var(--bg);
-        color: white;
-        font-family: -apple-system, sans-serif;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .header {
-        margin-bottom: 20px;
-        text-align: center;
-      }
-      .status-badge {
-        font-size: 12px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: #23313d;
-        color: #81b3d2;
-        margin-top: 8px;
-        display: inline-block;
-      }
-
-      .btn-group {
-        width: 100%;
-        max-width: 400px;
-        display: grid;
-        gap: 10px;
-        margin-bottom: 20px;
-      }
-      button {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        font-size: 14px;
-        transition: 0.2s;
-      }
-      button:active {
-        transform: scale(0.98);
-        opacity: 0.8;
-      }
-      button.wallet-btn {
-        background: #31a6f5;
-      }
-
-      .data-container {
-        width: 100%;
-        max-width: 400px;
-      }
-      .card {
-        background: var(--card);
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        border-left: 4px solid var(--primary);
-        animation: fadeIn 0.5s ease;
-      }
-      .card-title {
-        font-weight: bold;
-        font-size: 16px;
-        margin-bottom: 5px;
-      }
-      .card-meta {
-        font-size: 13px;
-        color: #81b3d2;
-      }
-
-      #error-log {
-        width: 100%;
-        max-width: 400px;
-        color: #ff5f5f;
-        font-size: 12px;
-        background: rgba(255, 95, 95, 0.1);
-        padding: 10px;
-        border-radius: 8px;
-        display: none;
-        margin-top: 10px;
-        word-break: break-all;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
+        :root {
+            --primary: #248bcf;
+            --bg: #0e1621;
+            --card: #17212b;
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h2>系统模块连通测试</h2>
-      <div id="connection-status" class="status-badge">正在检查环境...</div>
-    </div>
 
-    <div class="btn-group">
-      <button class="wallet-btn" onclick="connectWallet()">检测钱包插件</button>
-      <button onclick="fetchData()">刷新 API 数据</button>
-    </div>
-
-    <div id="error-log"></div>
-
-    <div class="data-container" id="list-container"></div>
-
-    <script>
-      // 1. 基础配置 (请检查 URL 和 KEY)
-      const SB_URL = "https://kfalyawduveuuttniiun.supabase.co";
-      const SB_KEY = "sb_publishable_6mBG3xWhYAHCOEmNIG4BEA_wh5O2Ayx";
-
-      const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
-      // 2. 模拟钱包连接逻辑
-      function connectWallet() {
-        if (window.Telegram && window.Telegram.WebApp) {
-          const user = window.Telegram.WebApp.initDataUnsafe.user;
-          alert(
-            user
-              ? `检测到用户: ${user.first_name}`
-              : "请在 Telegram 环境下打开以测试钱包模块",
-          );
-        } else {
-          alert("非 Telegram 环境，模拟钱包检测中...");
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
         }
-      }
-
-      // 3. 数据拉取核心逻辑 (朋友需要重点调试这里)
-      async function fetchData() {
-        const statusBox = document.getElementById("connection-status");
-        const errorBox = document.getElementById("error-log");
-        const listContainer = document.getElementById("list-container");
-
-        statusBox.innerText = "正在请求数据...";
-        errorBox.style.display = "none";
-
-        try {
-          // 重点：如果 Supabase 后台没有开启 CORS，这一步会触发 Failed to fetch
-          const { data, error } = await supabaseClient
-            .from("markets")
-            .select("*")
-            .order("id", { ascending: false });
-
-          if (error) throw error;
-
-          statusBox.innerText = "✅ API 通信正常";
-
-          if (data && data.length > 0) {
-            listContainer.innerHTML = data
-              .map(
-                (item) => `
-                        <div class="card">
-                            <div class="card-title">数据项: ${item.topic || "未命名"}</div>
-                            <div class="card-meta">数值参数: ${item.pool || 0} units</div>
-                        </div>
-                    `,
-              )
-              .join("");
-          } else {
-            listContainer.innerHTML =
-              '<div style="color:#666">连接成功，但数据库返回空列表。</div>';
-          }
-        } catch (err) {
-          statusBox.innerText = "❌ 接口通信拦截";
-          errorBox.style.display = "block";
-          errorBox.innerHTML = `<strong>技术细节:</strong><br>${err.message}<br><br>建议检查: Supabase -> Settings -> API -> Allow All Origins 是否设置为 *`;
-          console.error("Fetch Error:", err);
+        .status-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: #23313d;
+            color: #81b3d2;
+            margin-top: 8px;
+            display: inline-block;
         }
-      }
 
-      // 初始化加载
-      window.onload = () => {
-        if (window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.ready();
-          window.Telegram.WebApp.expand();
-        }
-        fetchData();
-      };
-    </script>
-  </body>
-</html>
+        .btn-group {
+            width: 100%;
+            max-width: 400px;
+            display: grid;
+            gap: 10px;
