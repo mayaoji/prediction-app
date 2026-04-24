@@ -5,185 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
-        :root {
-            --bg-pure: #000000;
-            --card-dark: #121212;
-            --btn-light-gray: #e0e0e0;
-            --gold: #d4af37;
-            --text-white: #ffffff;
-            --text-gray: #888888;
-        }
-
-        body { 
-            background: var(--bg-pure); color: var(--text-white); 
-            font-family: -apple-system, "PingFang SC", sans-serif;
-            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
-        }
-
-        .app-container { width: 100%; max-width: 500px; padding: 20px; padding-bottom: 120px; }
-
-        /* 标题部分：双语 + 金色 */
-        .header { text-align: center; margin: 40px 0; }
-        .brand { font-size: 22px; font-weight: 800; color: var(--gold); letter-spacing: 2px; margin-bottom: 4px; }
-        .brand-en { font-size: 10px; color: var(--gold); opacity: 0.6; letter-spacing: 1px; font-weight: 500; text-transform: uppercase; }
-
-        /* 连接钱包卡片 */
-        .wallet-card {
-            background: var(--card-dark); border-radius: 24px; padding: 30px 20px;
-            margin-bottom: 30px; text-align: center; border: 1px solid #1f1f1f;
-        }
-        .wallet-title { font-size: 13px; color: var(--text-gray); margin-bottom: 18px; }
-        #ton-connect-btn { display: flex; justify-content: center; }
-
-        .section-header { font-size: 12px; font-weight: 600; color: var(--gold); margin-bottom: 15px; opacity: 0.7; }
-
-        /* 预测卡片 */
-        .market-item {
-            background: var(--card-dark); border-radius: 22px; padding: 24px; margin-bottom: 15px; border: 1px solid #1f1f1f;
-        }
-        .market-topic { font-size: 18px; font-weight: 700; margin-bottom: 20px; line-height: 1.4; }
-        
-        /* 百分比进度条 */
-        .vote-stats { display: flex; gap: 10px; margin-bottom: 22px; }
-        .vote-bar { 
-            flex: 1; background: #0a0a0a; height: 46px; border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 800; position: relative; overflow: hidden;
-            border: 1px solid #1a1a1a;
-        }
-        .vote-fill { position: absolute; left: 0; top: 0; height: 100%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.2; }
-        .yes-fill { background: #00ff88; }
-        .no-fill { background: #ff4d4d; }
-        .vote-label { z-index: 2; }
-        .vote-label.yes { color: #00ff88; }
-        .vote-label.no { color: #ff4d4d; }
-
-        /* 浅灰色参与按钮组 */
-        .action-group { display: flex; gap: 10px; }
-        .btn-action {
-            flex: 1; background: var(--btn-light-gray); color: #000; border: none;
-            padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer;
-        }
-
-        /* 底部固定发起按钮 */
-        .fixed-footer {
-            position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000;
-        }
-        .btn-create {
-            width: 90%; max-width: 450px; background: var(--btn-light-gray); color: #000; border: none;
-            padding: 18px; border-radius: 22px; font-size: 16px; font-weight: 800;
-        }
+        body { background-color: #0d1117; color: #e6edf3; font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { font-size: 48px; margin-bottom: 8px; }
+        .market-card { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        h2 { color: #d4af37; margin: 0 0 15px 0; }
+        .stats { display: flex; justify-content: space-between; color: #8b949e; font-size: 0.95rem; }
+        .btn-group { display: flex; gap: 12px; margin-top: 20px; }
+        button { flex: 1; padding: 16px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; }
+        .btn-yes { background: #238636; color: white; }
+        .btn-no { background: #da3633; color: white; }
+        .wallet-btn { background: #58a6ff; color: white; margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; }
+        .address-box { background: #010409; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.85rem; word-break: break-all; border: 1px dashed #30363d; }
     </style>
 </head>
 <body>
-
-    <div class="app-container">
-        <div class="header">
-            <div class="brand">中国预测市场</div>
-            <div class="brand-en">China Prediction Market</div>
-        </div>
-
-        <div class="wallet-card">
-            <div class="wallet-title">CONNECT WALLET TO PARTICIPATE</div>
-            <div id="ton-connect-btn"></div>
-        </div>
-
-        <div class="section-header">ACTIVE PREDICTIONS</div>
-        <div id="market-list"></div>
+    <div class="header">
+        <div class="logo">♾️</div>
+        <h1>中国预测市场</h1>
+        <p style="color:#8b949e;">去中心化 · 链上结算 · 公平透明</p >
     </div>
 
-    <div class="fixed-footer">
-        <button onclick="createMarket()" class="btn-create">📝 发起新预测 (0.1 TON)</button>
+    <div class="market-card">
+        <h2>📊 Sora 4月内全球开放预测</h2>
+        <div class="stats">
+            <span>奖池: 1,280 USDT</span>
+            <span>参与: 142 人</span>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn-yes" onclick="bet('YES')">看好 YES (68%)</button>
+            <button class="btn-no" onclick="bet('NO')">看跌 NO (32%)</button>
+        </div>
+
+        <div onclick="connectWallet()" class="wallet-btn">
+            连接 Phantom 钱包下注
+        </div>
+
+        <div class="address-box">
+            <strong>当前市场地址（示例）：</strong><br>
+            <span id="contract">即将上链...</span>
+        </div>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        // Telegram Mini App 初始化
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
 
-        // TON Connect
-        const tonConnectUI = new TONConnectUI.TonConnectUI({
-            manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-btn'
-        });
-
-        // 数据逻辑：使用 localStorage 模拟数据库
-        let markets = JSON.parse(localStorage.getItem("markets") || "[]");
-
-        function createMarket() {
-            const title = prompt("请输入预测标题：");
-            if (!title || title.trim() === "") return;
-            
-            markets.push({
-                id: Date.now(),
-                title: title.trim(),
-                yes: 0,
-                no: 0
-            });
-            localStorage.setItem("markets", JSON.stringify(markets));
-            tg.showAlert("✅ 发布成功！");
-            renderMarkets();
+        function connectWallet() {
+            alert("正在连接 Phantom 钱包...\n\n（后续会接入真实钱包功能）");
+            // 未来这里会接入 Phantom SDK
         }
 
-        function renderMarkets() {
-            const listDiv = document.getElementById('market-list');
-            if (markets.length === 0) {
-                listDiv.innerHTML = '<div style="text-align:center; color:#444; margin-top:20px;">No Active Predictions</div>';
-                return;
+        function bet(side) {
+            if (confirm(`确定要下注 ${side} 吗？\n\n资金将直接进入智能合约（去中心化）`)) {
+                alert(`已提交 ${side} 下注请求！\n\n（后续会弹出钱包确认）`);
             }
-
-            listDiv.innerHTML = markets.map(m => {
-                const total = (m.yes || 0) + (m.no || 0);
-                const yesP = total === 0 ? 50 : Math.round((m.yes / total) * 100);
-                const noP = 100 - yesP;
-
-                return `
-                    <div class="market-item">
-                        <div class="market-topic">${m.title}</div>
-                        <div class="vote-stats">
-                            <div class="vote-bar">
-                                <div class="vote-fill yes-fill" style="width: ${yesP}%"></div>
-                                <span class="vote-label yes">Yes ${yesP}%</span>
-                            </div>
-                            <div class="vote-bar">
-                                <div class="vote-fill no-fill" style="width: ${noP}%"></div>
-                                <span class="vote-label no">No ${noP}%</span>
-                            </div>
-                        </div>
-                        <div class="action-group">
-                            <button class="btn-action" onclick="buyYes(${m.id})">买入 Yes (${m.yes})</button>
-                            <button class="btn-action" onclick="buyNo(${m.id})">买入 No (${m.no})</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
         }
 
-        function buyYes(id) {
-            const amount = prompt("买入 Yes 数量：", "10");
-            if (!amount || isNaN(amount) || parseInt(amount) <= 0) return;
-            
-            markets = markets.map(m => m.id === id ? {...m, yes: (m.yes || 0) + parseInt(amount)} : m);
-            updateAndRender();
-        }
-
-        function buyNo(id) {
-            const amount = prompt("买入 No 数量：", "10");
-            if (!amount || isNaN(amount) || parseInt(amount) <= 0) return;
-            
-            markets = markets.map(m => m.id === id ? {...m, no: (m.no || 0) + parseInt(amount)} : m);
-            updateAndRender();
-        }
-
-        function updateAndRender() {
-            localStorage.setItem("markets", JSON.stringify(markets));
-            renderMarkets();
-            tg.HapticFeedback.impactOccurred('medium');
-        }
-
-        window.onload = renderMarkets;
+        // 显示 Telegram 用户信息（可选）
+        console.log("Telegram WebApp 已启动");
     </script>
 </body>
 </html>
