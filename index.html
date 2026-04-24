@@ -4,30 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>中国预测市场</title>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             background: #0e1621;
             color: white;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, sans-serif;
             margin: 0;
             padding: 20px;
             text-align: center;
         }
-        .header {
-            margin-bottom: 35px;
-        }
         h1 {
             font-size: 32px;
-            margin: 8px 0 6px 0;
-            font-weight: bold;
+            margin: 30px 0 8px 0;
         }
         .subtitle {
-            font-size: 21px;
-            color: white;
-            margin: 0 0 35px 0;
-            font-weight: 500;
+            font-size: 20px;
+            color: #aaa;
+            margin-bottom: 40px;
         }
         button {
             background: #248bcf;
@@ -50,14 +43,37 @@
             margin: 15px auto;
             max-width: 380px;
             text-align: left;
-            border-left: 4px solid #248bcf;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>中国预测市场</h1>
-        <div class="subtitle">Polymarket China</div>
-    </div>
+    <h1>中国预测市场</h1>
+    <div class="subtitle">Polymarket China</div>
 
-    <!-- TON 钱包连接按钮
+    <button onclick="alert('TON 钱包连接功能开发中...')">🔗 连接 TON 钱包</button>
+    <button onclick="publish()">📝 发起新预测</button>
+
+    <div id="list" style="margin-top: 40px;"></div>
+
+    <script>
+        async function publish() {
+            const topic = prompt("请输入预测话题：");
+            if (topic) {
+                alert("✅ 发布成功！（模拟）\n话题：" + topic);
+                loadList();
+            }
+        }
+
+        function loadList() {
+            document.getElementById('list').innerHTML = `
+                <div class="card">
+                    <strong>测试数据</strong><br>
+                    <small>数据共享已打通，功能正在完善...</small>
+                </div>
+            `;
+        }
+
+        window.onload = loadList;
+    </script>
+</body>
+</html>
