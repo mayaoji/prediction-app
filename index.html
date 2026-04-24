@@ -1,175 +1,136 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中国预测市场</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
-        :root {
-            --bg-pure: #000000;
-            --card-dark: #121212;
-            --btn-light-gray: #e0e0e0;
-            --gold: #d4af37;
-            --text-white: #ffffff;
-            --text-gray: #888888;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, #0088cc, #005f99);
+            color: white;
+            text-align: center;
         }
-
-        body { 
-            background: var(--bg-pure); color: var(--text-white); 
-            font-family: -apple-system, "PingFang SC", sans-serif;
-            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
+        h1 { font-size: 32px; margin: 25px 0 10px; }
+        p { font-size: 19px; margin-bottom: 30px; }
+        button {
+            padding: 18px 28px;
+            margin: 12px 6px;
+            border-radius: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            width: 92%;
+            max-width: 360px;
         }
-
-        .app-container { width: 100%; max-width: 500px; padding: 20px; padding-bottom: 120px; }
-
-        /* 标题部分：增加英文后缀 */
-        .header { text-align: center; margin: 40px 0; }
-        .brand { font-size: 22px; font-weight: 800; color: var(--gold); letter-spacing: 2px; margin-bottom: 4px; }
-        .brand-en { font-size: 10px; color: var(--gold); opacity: 0.6; letter-spacing: 1px; font-weight: 500; text-transform: uppercase; }
-
-        /* 钱包卡片 */
-        .wallet-card {
-            background: var(--card-dark); border-radius: 24px; padding: 30px 20px;
-            margin-bottom: 30px; text-align: center;
-            border: 1px solid #1f1f1f;
-        }
-        .wallet-title { font-size: 13px; color: var(--text-gray); margin-bottom: 18px; letter-spacing: 0.5px; }
-        #ton-connect-btn { display: flex; justify-content: center; }
-
-        .section-header { font-size: 12px; font-weight: 600; color: var(--gold); margin-bottom: 15px; opacity: 0.7; padding-left: 5px; }
-
-        /* 预测卡片 */
-        .market-item {
-            background: var(--card-dark); border-radius: 22px; padding: 24px; margin-bottom: 15px;
-            border: 1px solid #1f1f1f;
-        }
-        .market-topic { font-size: 18px; font-weight: 700; margin-bottom: 20px; line-height: 1.4; color: #fdfdfd; }
-        
-        /* 比例进度条 */
-        .vote-stats { display: flex; gap: 10px; margin-bottom: 22px; }
-        .vote-bar { 
-            flex: 1; background: #0a0a0a; height: 46px; border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 800; position: relative; overflow: hidden;
-            border: 1px solid #1a1a1a;
-        }
-        .vote-fill { position: absolute; left: 0; top: 0; height: 100%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.2; }
-        .yes-fill { background: #00ff88; }
-        .no-fill { background: #ff4d4d; }
-        .vote-label { z-index: 2; }
-        .vote-label.yes { color: #00ff88; }
-        .vote-label.no { color: #ff4d4d; }
-
-        /* 按钮：浅灰色 */
-        .btn-join {
-            width: 100%; background: var(--btn-light-gray); color: #000; border: none;
-            padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .btn-join:active { transform: scale(0.98); }
-
-        /* 底部固定发起按钮 */
-        .fixed-footer {
-            position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000;
-        }
-        .btn-create {
-            width: 90%; max-width: 450px; background: var(--btn-light-gray); color: #000; border: none;
-            padding: 18px; border-radius: 22px; font-size: 16px; font-weight: 800;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        .yes-btn { background: #4CAF50; color: white; }
+        .no-btn { background: #f44336; color: white; }
+        .market {
+            background: rgba(255,255,255,0.25);
+            margin: 15px 0;
+            padding: 22px;
+            border-radius: 20px;
+            text-align: left;
         }
     </style>
 </head>
 <body>
+    <h1>🚀 中国预测市场</h1>
+    <p>欢迎，<span id="user">朋友</span>！</p >
 
-    <div class="app-container">
-        <div class="header">
-            <div class="brand">中国预测市场</div>
-            <div class="brand-en">China Prediction Market</div>
-        </div>
+    <button onclick="alert('TON 钱包连接功能开发中...')">🔗 连接 TON 钱包</button>
+    <button onclick="createMarket()">📝 发布新预测</button>
+    <button onclick="viewMarkets()">📋 查看所有预测</button>
 
-        <div class="wallet-card">
-            <div class="wallet-title">CONNECT WALLET TO PARTICIPATE</div>
-            <div id="ton-connect-btn"></div>
-        </div>
-
-        <div class="section-header">ACTIVE PREDICTIONS</div>
-        <div id="market-list"></div>
-    </div>
-
-    <div class="fixed-footer">
-        <button id="main-create-btn" class="btn-create">发起新预测 (0.1 TON)</button>
-    </div>
+    <div id="result" style="margin-top:35px;"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        
-        const tonConnectUI = new TONConnectUI.TonConnectUI({
-            manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-btn'
-        });
+        tg.ready();
+        tg.expand();
 
-        const SB_URL = "https://kfalyawduveuuttniiun.supabase.co";
-        const SB_KEY = "sb_publishable_6mBG3xWhYAHCOEmNIG4BEA_wh5O2Ayx";
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        const user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {};
+        document.getElementById("user").textContent = user.first_name || "朋友";
 
-        async function loadMarkets() {
-            const { data } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
-            const listDiv = document.getElementById('market-list');
+        let markets = JSON.parse(localStorage.getItem("markets") || "[]");
+
+        function createMarket() {
+            const title = prompt("请输入预测标题：\n例如：Sora 本月会向中国用户开放吗？");
+            if (!title || title.trim() === "") {
+                tg.showAlert("标题不能为空！");
+                return;
+            }
+            markets.push({
+                id: Date.now(),
+                title: title.trim(),
+                creator: user.first_name || "匿名",
+                time: new Date().toLocaleString("zh-CN"),
+                yes: 0,
+                no: 0
+            });
+            localStorage.setItem("markets", JSON.stringify(markets));
+            tg.showAlert("✅ 发布成功！");
+            viewMarkets();
+        }
+
+        function viewMarkets() {
+            let html = "<h2>当前活跃预测：</h2>";
+            if (markets.length === 0) {
+                html += "<p>还没有预测，快去发布第一个吧！</p >";
+            } else {
+                for (var i = 0; i < markets.length; i++) {
+                    var m = markets[i];
+                    var total = (m.yes || 0) + (m.no || 0) || 1;
+                    var yesP = Math.round(((m.yes || 0) / total) * 100);
+                    var noP = Math.round(((m.no || 0) / total) * 100);
+
+                    html += '<div class="market">';
+                    html += "<b>" + m.title + "</b><br>";
+                    html += "<small>发布者：" + m.creator + " | " + m.time + "</small><br><br>";
+                    html += '<button class="yes-btn" onclick="buyYes(' + m.id + ')">Yes (' + yesP + '%)</button>';
+                    html += '<span style="margin-left:15px">' + (m.yes || 0) + ' 份额</span><br><br>';
+                    html += '<button class="no-btn" onclick="buyNo(' + m.id + ')">No (' + noP + '%)</button>';
+                    html += '<span style="margin-left:15px">' + (m.no || 0) + ' 份额</span>';
+                    html += "</div>";
+                }
+            }
+            document.getElementById("result").innerHTML = html;
+        }
+
+        function buyYes(id) {
+            const amount = prompt("请输入买入 Yes 的份额数量：", "10");
+            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
             
-            if (data && data.length > 0) {
-                listDiv.innerHTML = data.map(item => {
-                    const yesV = item.yes_votes || 0;
-                    const noV = item.no_votes || 0;
-                    const total = yesV + noV;
-                    const yesP = total === 0 ? 50 : Math.round((yesV / total) * 100);
-                    const noP = 100 - yesP;
-                    
-                    return `
-                    <div class="market-item">
-                        <div class="market-topic">${item.topic}</div>
-                        <div class="vote-stats">
-                            <div class="vote-bar">
-                                <div class="vote-fill yes-fill" style="width: ${yesP}%"></div>
-                                <span class="vote-label yes">Yes ${yesP}%</span>
-                            </div>
-                            <div class="vote-bar">
-                                <div class="vote-fill no-fill" style="width: ${noP}%"></div>
-                                <span class="vote-label no">No ${noP}%</span>
-                            </div>
-                        </div>
-                        <button class="btn-join" onclick="handleBet('${item.id}')">立即参与</button>
-                    </div>
-                    `;
-                }).join('');
+            for (var i = 0; i < markets.length; i++) {
+                if (markets[i].id === id) {
+                    markets[i].yes = (markets[i].yes || 0) + parseInt(amount);
+                    break;
+                }
             }
+            localStorage.setItem("markets", JSON.stringify(markets));
+            tg.showAlert("✅ 已买入 " + amount + " Yes 份额！");
+            viewMarkets();
         }
 
-        document.getElementById('main-create-btn').addEventListener('click', () => {
-            tg.HapticFeedback.impactOccurred('medium');
-            if (!tonConnectUI.connected) {
-                tg.showAlert("Please connect your wallet first.");
-            } else {
-                tg.showAlert("功能对接中...");
+        function buyNo(id) {
+            const amount = prompt("请输入买入 No 的份额数量：", "10");
+            if (!amount || isNaN(amount) || amount <= 0) return tg.showAlert("数量无效！");
+            
+            for (var i = 0; i < markets.length; i++) {
+                if (markets[i].id === id) {
+                    markets[i].no = (markets[i].no || 0) + parseInt(amount);
+                    break;
+                }
             }
-        });
-
-        async function handleBet(marketId) {
-            tg.HapticFeedback.selectionChanged();
-            if (!tonConnectUI.connected) {
-                tonConnectUI.openModal();
-            } else {
-                tg.showAlert("正在唤起 TON 钱包...");
-            }
+            localStorage.setItem("markets", JSON.stringify(markets));
+            tg.showAlert("✅ 已买入 " + amount + " No 份额！");
+            viewMarkets();
         }
 
-        window.onload = () => {
-            tg.ready();
-            tg.expand();
-            loadMarkets();
-        };
+        window.onload = viewMarkets;
     </script>
 </body>
 </html>
