@@ -3,77 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>中国预测市场</title>
+    <title>中国预测市场 - 机器人增强版</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            background: #0e1621;
-            color: white;
-            font-family: -apple-system, sans-serif;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 32px;
-            margin: 30px 0 8px 0;
-        }
-        .subtitle {
-            font-size: 20px;
-            color: #aaa;
-            margin-bottom: 40px;
-        }
-        button {
-            background: #248bcf;
-            color: white;
-            border: none;
-            padding: 16px;
-            width: 100%;
-            max-width: 380px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 17px;
-            margin: 12px auto;
-            display: block;
-            cursor: pointer;
-        }
-        .card {
-            background: #17212b;
-            padding: 18px;
-            border-radius: 12px;
-            margin: 15px auto;
-            max-width: 380px;
-            text-align: left;
-        }
+        body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: #0e1621; color: white; text-align: center; padding: 20px; }
+        .market-card { background: #17212b; margin: 12px auto; padding: 16px; border-radius: 12px; text-align: left; max-width: 450px; border: 1px solid #2b5278; }
+        .btn-main { padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; background: #2481cc; color: white; border: none; width: 100%; margin: 8px 0; font-size: 16px; }
+        #status-bar { font-size: 13px; color: #708499; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <h1>中国预测市场</h1>
-    <div class="subtitle">Polymarket China</div>
 
-    <button onclick="alert('TON 钱包连接功能开发中...')">🔗 连接 TON 钱包</button>
-    <button onclick="publish()">📝 发起新预测</button>
+    <h2 style="color:#6ab0f3;">🚀 中国预测市场</h2>
+    <div id="ton-connect"></div>
+    <div id="status-bar">正在通过 Telegram 安全通道同步...</div>
 
-    <div id="list" style="margin-top: 40px;"></div>
+    <button class="btn-main" onclick="createMarket()">📝 发起新预测 (0.1 TON)</button>
+    <button class="btn-main" style="background:#2b5278;" onclick="fetchMarkets()">🔄 刷新实时数据</button>
+
+    <div id="market-list" style="margin-top:20px;">加载中...</div>
 
     <script>
-        async function publish() {
-            const topic = prompt("请输入预测话题：");
-            if (topic) {
-                alert("✅ 发布成功！（模拟）\n话题：" + topic);
-                loadList();
+        // 配置保持不变，用于展示数据
+        const S_URL = "https://kfalyawduveuuttniun.supabase.co"; 
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYWx5YXdkdXZldXV0dG5paXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODE2MjQsImV4cCI6MjA5MjQ1NzYyNH0.YdlWOljkvsimq628KSxw99bpvmyN8Bsdza15uFoEs_0"; 
+        const MY_ADDR = "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y"; 
+
+        const supabaseClient = supabase.createClient(S_URL, S_KEY);
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://mayaoji.github.io/prediction-app/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+
+        // 初始化 Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // 展开窗口
+
+        async function fetchMarkets() {
+            try {
+                // 读取数据依然可以走前端，因为读取不涉及写入权限，被拦截概率小
+                const { data, error } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false }).limit(20);
+                if (error) throw error;
+                document.getElementById('market-list').innerHTML = data.map(m => `
+                    <div class="market-card">
+                        <span style="float:right; color:#facc15; font-weight:bold;">${m.pool} TON</span>
+                        <div style="font-size:16px;">${m.topic}</div>
+                    </div>
+                `).join('') || "暂无活动话题";
+                document.getElementById('status-bar').innerText = "✅ 列表已更新";
+            } catch (e) {
+                document.getElementById('market-list').innerHTML = "<p style='color:#708499;'>数据同步中，请稍后刷新...</p >";
             }
         }
 
-        function loadList() {
-            document.getElementById('list').innerHTML = `
-                <div class="card">
-                    <strong>测试数据</strong><br>
-                    <small>数据共享已打通，功能正在完善...</small>
-                </div>
-            `;
+        async function createMarket() {
+            if (!tonConnectUI.connected) return alert("请先连接钱包");
+            const topic = prompt("请输入预测话题：");
+            if (!topic) return;
+
+            try {
+                const tx = {
+                    validUntil: Math.floor(Date.now() / 1000) + 360,
+                    messages: [{ address: MY_ADDR, amount: "100000000" }] // 0.1 TON
+                };
+                
+                // 1. 发起支付
+                await tonConnectUI.sendTransaction(tx);
+                
+                // 2. 支付成功后，通过 Telegram 发送数据给后端机器人
+                alert("支付指令已提交！正在通过机器人安全通道写入数据...");
+                sendDataToBot(topic, 0.1);
+
+            } catch (e) {
+                console.error(e);
+                // 容错：如果支付由于跳转问题报错，但用户确认已扣款
+                if (confirm("如果 OKX 已扣款成功，请点“确定”强行发布。")) {
+                    sendDataToBot(topic, 0.1);
+                }
+            }
         }
 
-        window.onload = loadList;
+        // 核心修改：不再直接连 Supabase，而是把任务交给机器人后端
+        function sendDataToBot(topic, pool) {
+            const payload = JSON.stringify({
+                type: 'create_market',
+                topic: topic.trim(),
+                pool: parseFloat(pool)
+            });
+
+            if (tg) {
+                tg.sendData(payload); // 向机器人发送密报
+                document.getElementById('status-bar').innerText = "🚀 信号已发给机器人，请在对话框查看回复";
+                setTimeout(() => tg.close(), 3000); // 3秒后自动关闭 WebApp 回到对话框
+            } else {
+                alert("请在 Telegram 机器人内操作");
+            }
+        }
+
+        tonConnectUI.onStatusChange(w => fetchMarkets());
+        fetchMarkets();
     </script>
 </body>
 </html>
