@@ -9,72 +9,76 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         :root {
-            --bg-dark: #000000; /* 纯黑底色 */
-            --card-bg: #111111; /* 深灰色卡片 */
-            --btn-gray: #e0e0e0; /* 按钮浅灰色 */
-            --gold: #d4af37;    /* 商务金点缀 */
+            --bg-pure: #000000;
+            --card-dark: #121212;
+            --btn-light-gray: #e0e0e0;
+            --gold: #d4af37;
             --text-white: #ffffff;
-            --text-dim: #888888;
+            --text-gray: #888888;
         }
 
         body { 
-            background: var(--bg-dark); color: var(--text-white); 
-            font-family: -apple-system, sans-serif;
+            background: var(--bg-pure); color: var(--text-white); 
+            font-family: -apple-system, "PingFang SC", sans-serif;
             margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
         }
 
         .app-container { width: 100%; max-width: 500px; padding: 20px; padding-bottom: 120px; }
 
-        /* 标题统一颜色，移除图标 */
-        .header { display: flex; justify-content: center; align-items: center; margin: 30px 0; }
-        .brand { font-size: 22px; font-weight: 800; color: var(--gold); letter-spacing: 2px; }
+        /* 标题部分：增加英文后缀 */
+        .header { text-align: center; margin: 40px 0; }
+        .brand { font-size: 22px; font-weight: 800; color: var(--gold); letter-spacing: 2px; margin-bottom: 4px; }
+        .brand-en { font-size: 10px; color: var(--gold); opacity: 0.6; letter-spacing: 1px; font-weight: 500; text-transform: uppercase; }
 
-        /* 连接钱包引导卡片 */
+        /* 钱包卡片 */
         .wallet-card {
-            background: var(--card-bg); border-radius: 20px; padding: 25px;
-            margin-bottom: 24px; text-align: center;
-            border: 1px solid #222;
+            background: var(--card-dark); border-radius: 24px; padding: 30px 20px;
+            margin-bottom: 30px; text-align: center;
+            border: 1px solid #1f1f1f;
         }
-        .wallet-title { font-size: 14px; color: var(--text-dim); margin-bottom: 15px; }
+        .wallet-title { font-size: 13px; color: var(--text-gray); margin-bottom: 18px; letter-spacing: 0.5px; }
         #ton-connect-btn { display: flex; justify-content: center; }
 
-        .section-title { font-size: 14px; font-weight: 600; color: var(--gold); margin-bottom: 15px; text-transform: uppercase; }
+        .section-header { font-size: 12px; font-weight: 600; color: var(--gold); margin-bottom: 15px; opacity: 0.7; padding-left: 5px; }
 
-        /* 项目列表 */
+        /* 预测卡片 */
         .market-item {
-            background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px;
-            border: 1px solid #222;
+            background: var(--card-dark); border-radius: 22px; padding: 24px; margin-bottom: 15px;
+            border: 1px solid #1f1f1f;
         }
-        .market-topic { font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--text-white); }
+        .market-topic { font-size: 18px; font-weight: 700; margin-bottom: 20px; line-height: 1.4; color: #fdfdfd; }
         
-        /* Yes/No 百分比条 */
-        .vote-stats { display: flex; gap: 10px; margin-bottom: 20px; }
+        /* 比例进度条 */
+        .vote-stats { display: flex; gap: 10px; margin-bottom: 22px; }
         .vote-bar { 
-            flex: 1; background: #222; height: 40px; border-radius: 10px; 
+            flex: 1; background: #0a0a0a; height: 46px; border-radius: 12px; 
             display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 700; position: relative; overflow: hidden;
+            font-size: 13px; font-weight: 800; position: relative; overflow: hidden;
+            border: 1px solid #1a1a1a;
         }
-        .vote-fill { position: absolute; left: 0; top: 0; height: 100%; transition: width 0.3s; opacity: 0.3; }
-        .yes-fill { background: #00ff00; }
-        .no-fill { background: #ff0000; }
+        .vote-fill { position: absolute; left: 0; top: 0; height: 100%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.2; }
+        .yes-fill { background: #00ff88; }
+        .no-fill { background: #ff4d4d; }
         .vote-label { z-index: 2; }
-        .vote-label.yes { color: #00ff00; }
+        .vote-label.yes { color: #00ff88; }
         .vote-label.no { color: #ff4d4d; }
 
-        /* 参与按钮改为浅灰色 */
+        /* 按钮：浅灰色 */
         .btn-join {
-            width: 100%; background: var(--btn-gray); color: #000; border: none;
-            padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700;
+            width: 100%; background: var(--btn-light-gray); color: #000; border: none;
+            padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer;
+            transition: transform 0.1s;
         }
+        .btn-join:active { transform: scale(0.98); }
 
-        /* 底部发起预测按钮 */
+        /* 底部固定发起按钮 */
         .fixed-footer {
             position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000;
         }
         .btn-create {
-            width: 90%; max-width: 450px; background: var(--btn-gray); color: #000; border: none;
-            padding: 18px; border-radius: 18px; font-size: 16px; font-weight: 800;
-            box-shadow: 0 4px 20px rgba(255,255,255,0.1);
+            width: 90%; max-width: 450px; background: var(--btn-light-gray); color: #000; border: none;
+            padding: 18px; border-radius: 22px; font-size: 16px; font-weight: 800;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -83,14 +87,15 @@
     <div class="app-container">
         <div class="header">
             <div class="brand">中国预测市场</div>
+            <div class="brand-en">China Prediction Market</div>
         </div>
 
         <div class="wallet-card">
-            <div class="wallet-title">请连接 TON 钱包参与预测</div>
+            <div class="wallet-title">CONNECT WALLET TO PARTICIPATE</div>
             <div id="ton-connect-btn"></div>
         </div>
 
-        <div class="section-title">实时预测榜单</div>
+        <div class="section-header">ACTIVE PREDICTIONS</div>
         <div id="market-list"></div>
     </div>
 
@@ -114,22 +119,25 @@
             const { data } = await supabaseClient.from('markets').select('*').order('created_at', { ascending: false });
             const listDiv = document.getElementById('market-list');
             
-            if (data) {
+            if (data && data.length > 0) {
                 listDiv.innerHTML = data.map(item => {
-                    const yesPercent = item.yes_percent || 50;
-                    const noPercent = 100 - yesPercent;
+                    const yesV = item.yes_votes || 0;
+                    const noV = item.no_votes || 0;
+                    const total = yesV + noV;
+                    const yesP = total === 0 ? 50 : Math.round((yesV / total) * 100);
+                    const noP = 100 - yesP;
                     
                     return `
                     <div class="market-item">
                         <div class="market-topic">${item.topic}</div>
                         <div class="vote-stats">
                             <div class="vote-bar">
-                                <div class="vote-fill yes-fill" style="width: ${yesPercent}%"></div>
-                                <span class="vote-label yes">Yes ${yesPercent}%</span>
+                                <div class="vote-fill yes-fill" style="width: ${yesP}%"></div>
+                                <span class="vote-label yes">Yes ${yesP}%</span>
                             </div>
                             <div class="vote-bar">
-                                <div class="vote-fill no-fill" style="width: ${noPercent}%"></div>
-                                <span class="vote-label no">No ${noPercent}%</span>
+                                <div class="vote-fill no-fill" style="width: ${noP}%"></div>
+                                <span class="vote-label no">No ${noP}%</span>
                             </div>
                         </div>
                         <button class="btn-join" onclick="handleBet('${item.id}')">立即参与</button>
@@ -139,13 +147,12 @@
             }
         }
 
-        // 按钮交互修复
         document.getElementById('main-create-btn').addEventListener('click', () => {
             tg.HapticFeedback.impactOccurred('medium');
             if (!tonConnectUI.connected) {
-                tg.showAlert("请先连接钱包");
+                tg.showAlert("Please connect your wallet first.");
             } else {
-                tg.showAlert("功能对接中，请稍候...");
+                tg.showAlert("功能对接中...");
             }
         });
 
@@ -154,7 +161,7 @@
             if (!tonConnectUI.connected) {
                 tonConnectUI.openModal();
             } else {
-                tg.showAlert("正在唤起 TON 支付...");
+                tg.showAlert("正在唤起 TON 钱包...");
             }
         }
 
