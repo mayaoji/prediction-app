@@ -66,22 +66,19 @@
             <span class="text-green-600 font-bold" id="profit">0.00 TON</span>
         </div>
 
-        <button class="w-full dark-btn py-4 rounded-2xl font-bold text-lg" onclick="payWithTon()">确认下注</button>
+        <a id="pay-link" href=" " onclick="handlePayClick()" class="block w-full dark-btn py-4 rounded-2xl font-bold text-lg text-center">确认下注</a >
     </div>
 
     <script>
         let isConnected = false;
 
-        // 模拟连接钱包逻辑，确保点击有反馈
         function toggleConnect() {
             const btn = document.getElementById('connect-btn');
             if(!isConnected) {
-                // 模拟连接动作
                 btn.innerText = "UQ...Az2y";
                 btn.classList.replace('bg-gray-100', 'bg-blue-50');
                 btn.classList.add('text-blue-600', 'border-blue-200');
                 isConnected = true;
-                alert("钱包已连接 (模拟)");
             } else {
                 btn.innerText = "连接钱包";
                 btn.classList.remove('text-blue-600', 'border-blue-200');
@@ -121,7 +118,7 @@
         }
         document.getElementById('amount').oninput = updateProfit;
 
-        function payWithTon() {
+        function handlePayClick() {
             const walletAddress = "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y"; 
             const amount = document.getElementById('amount').value;
 
@@ -131,12 +128,12 @@
             }
 
             const nanoAmount = Math.floor(amount * 1000000000);
-            // 这里我们改用 ton:// 链接，它是最稳的唤起方式
-            const tonUrl = `ton://transfer/${walletAddress}?amount=${nanoAmount}&text=Bet-Prediction`;
-
-            if (confirm(`确认下注 ${amount} TON 吗？\n点击确定将跳转支付`)) {
-                window.location.href = tonUrl;
-            }
+            
+            // 尝试使用最通用的跳转格式
+            const okxUrl = `okx://ton/transfer?address=${walletAddress}&amount=${nanoAmount}`;
+            
+            // 关键：直接通过 location.href 跳转，不经过多层确认框，减少浏览器拦截风险
+            window.location.href = okxUrl;
         }
     </script>
 </body>
