@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>中国预测市场</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         body { background-color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .drawer-overlay { display: none; background: rgba(0,0,0,0.5); position: fixed; inset: 0; z-index: 40; }
@@ -15,16 +14,13 @@
         .dark-btn { background-color: #374151; color: white; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* 强制调整钱包按钮高度，防止遮挡 */
-        #ton-connect button { height: 32px !important; min-height: 32px !important; }
     </style>
 </head>
 <body>
 
     <header class="bg-white p-4 flex justify-between items-center sticky top-0 z-10 border-b">
         <h1 class="text-lg font-bold text-gray-700">中国预测市场</h1>
-        <div id="ton-connect"></div>
+        <button id="connect-btn" onclick="toggleConnect()" class="text-sm bg-gray-100 px-3 py-1 rounded-full border border-gray-300">连接钱包</button>
     </header>
 
     <div class="flex space-x-4 p-4 overflow-x-auto no-scrollbar">
@@ -74,21 +70,32 @@
     </div>
 
     <script>
-        // 初始化 TON Connect
-        const tonConnectUI = new TONConnectUI.TonConnectUI({
-            manifestUrl: 'https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react/master/public/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
-        });
+        let isConnected = false;
+
+        // 模拟连接钱包逻辑，确保点击有反馈
+        function toggleConnect() {
+            const btn = document.getElementById('connect-btn');
+            if(!isConnected) {
+                // 模拟连接动作
+                btn.innerText = "UQ...Az2y";
+                btn.classList.replace('bg-gray-100', 'bg-blue-50');
+                btn.classList.add('text-blue-600', 'border-blue-200');
+                isConnected = true;
+                alert("钱包已连接 (模拟)");
+            } else {
+                btn.innerText = "连接钱包";
+                btn.classList.remove('text-blue-600', 'border-blue-200');
+                btn.classList.add('bg-gray-100');
+                isConnected = false;
+            }
+        }
 
         let currentProb = 0;
         function openDrawer(type, prob) {
             currentProb = prob;
             document.getElementById('drawer-title').innerText = `下注: ${type} (${prob}%)`;
             document.getElementById('overlay').style.display = 'block';
-            // 确保显示
-            const drawer = document.getElementById('drawer');
-            drawer.style.display = 'block';
-            setTimeout(() => drawer.classList.add('active'), 10);
+            setTimeout(() => document.getElementById('drawer').classList.add('active'), 10);
         }
 
         function closeDrawer() {
@@ -105,7 +112,7 @@
 
         function updateProfit() {
             let amt = document.getElementById('amount').value;
-            if(amt > 0 && currentProb > 0) {
+            if(amt > 0) {
                 let potential = (amt * (100 / currentProb)).toFixed(2);
                 document.getElementById('profit').innerText = `${potential} TON`;
             } else {
@@ -124,9 +131,10 @@
             }
 
             const nanoAmount = Math.floor(amount * 1000000000);
+            // 这里我们改用 ton:// 链接，它是最稳的唤起方式
             const tonUrl = `ton://transfer/${walletAddress}?amount=${nanoAmount}&text=Bet-Prediction`;
 
-            if (confirm(`确认下注 ${amount} TON 吗？\n点击确定将打开钱包完成支付`)) {
+            if (confirm(`确认下注 ${amount} TON 吗？\n点击确定将跳转支付`)) {
                 window.location.href = tonUrl;
             }
         }
