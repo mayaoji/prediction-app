@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>中国预测市场</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@2.0.9/dist/tonconnect-sdk.min.js"></script>
     <style>
-        body { background-color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         .drawer-overlay { display: none; background: rgba(0,0,0,0.5); position: fixed; inset: 0; z-index: 40; }
-        .drawer { transform: translateY(100%); transition: transform 0.3s ease-out; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 50; padding: 20px; }
+        .drawer { transform: translateY(100%); transition: transform 0.3s ease-out; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 50; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
         .drawer.active { transform: translateY(0); }
-        .dark-btn { background-color: #374151; color: white; }
+        .dark-btn { background-color: #374151; color: white; transition: opacity 0.2s; }
+        .dark-btn:active { opacity: 0.8; }
         .gray-btn { background-color: #E5E7EB; color: #374151; }
     </style>
 </head>
@@ -45,116 +46,105 @@
             <button onclick="setAmount(10)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">10</button>
             <button onclick="setAmount(50)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">50</button>
             <button onclick="setAmount(100)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">100</button>
-            <button onclick="setAmount(200)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">全部</button>
+            <button onclick="setAmount(500)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">全部</button>
         </div>
 
-        <button id="pay-button" onclick="handlePay()" class="w-full dark-btn py-4 rounded-2xl font-bold text-lg">确认下注</button>
+        <button id="pay-btn" onclick="handlePay()" class="w-full dark-btn py-4 rounded-2xl font-bold text-lg">确认下注</button>
     </div>
 
     <script>
-        let isConnected = false;
-        let currentProb = 0;
         let connector;
+        let currentProb = 0;
 
-        // 初始化 TonConnect
         function initApp() {
+            // 初始化 SDK [cite: 2026-04-25]
             connector = new TonConnectSDK.TonConnect({
                 manifestUrl: 'https://mayaoji.github.io/tonconnect-manifest.json'
             });
 
-            // 监听连接状态变化
+            // 监听状态
             connector.onStatusChange(wallet => {
+                const btn = document.getElementById('connect-btn');
                 if (wallet) {
-                    updateUIConnected(wallet.account.address);
+                    const addr = wallet.account.address;
+                    btn.innerText = addr.substring(0,4) + '...' + addr.substring(addr.length-4);
+                    btn.classList.add('text-blue-600', 'bg-blue-50');
                 } else {
-                    updateUIDisconnected();
+                    btn.innerText = "连接钱包";
+                    btn.classList.remove('text-blue-600', 'bg-blue-50');
                 }
             });
 
-            // 自动重连
             connector.restoreConnection();
         }
 
         async function handleConnect() {
-            if (!isConnected) {
-                // 如果是移动端，这会唤起选择钱包的界面
-                const walletConnectionSource = {
-                    universalLink: 'https://app.okx.com/ton-connect', // 优先唤起 OKX
-                    bridgeUrl: 'https://bridge.tonapi.io/bridge'
-                };
-                const url = connector.connect(walletConnectionSource);
-                window.location.href = url; // 唤起钱包
-            } else {
+            if (connector.connected) {
                 await connector.disconnect();
-                updateUIDisconnected();
+            } else {
+                // 专门针对手机 Chrome 优化的连接跳转
+                const walletLink = connector.connect({
+                    universalLink: 'https://app.okx.com/ton-connect',
+                    bridgeUrl: 'https://bridge.tonapi.io/bridge'
+                });
+                window.location.href = walletLink;
             }
-        }
-
-        function updateUIConnected(address) {
-            const shortAddr = address.substring(0, 4) + '...' + address.substring(address.length - 4);
-            const btn = document.getElementById('connect-btn');
-            btn.innerText = shortAddr;
-            btn.classList.replace('bg-gray-100', 'bg-blue-50');
-            btn.classList.add('text-blue-600', 'border-blue-200');
-            isConnected = true;
-        }
-
-        function updateUIDisconnected() {
-            const btn = document.getElementById('connect-btn');
-            btn.innerText = "连接钱包";
-            btn.className = "text-sm bg-gray-100 px-3 py-1 rounded-full border border-gray-300";
-            isConnected = false;
         }
 
         async function handlePay() {
-            if (!isConnected) {
-                alert("请先点击顶部连接钱包");
+            if (!connector.connected) {
+                alert("钱包未连接");
+                handleConnect();
                 return;
             }
 
-            const amount = document.getElementById('amount').value;
-            if (!amount || amount <= 0) { alert("请输入金额"); return; }
+            const amt = document.getElementById('amount').value;
+            if (!amt || amt <= 0) { alert("请输入金额"); return; }
 
-            const nanoAmount = Math.floor(amount * 1000000000).toString();
-            
-            // 构造正式的交易请求
+            const payBtn = document.getElementById('pay-btn');
+            payBtn.innerText = "正在唤起钱包...";
+            payBtn.disabled = true;
+
+            // 构造交易对象
             const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 60, // 60秒有效
-                messages: [
-                    {
-                        address: "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y", // 你的收款地址
-                        amount: nanoAmount,
-                    }
-                ]
+                validUntil: Math.floor(Date.now() / 1000) + 300, 
+                messages: [{
+                    address: "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y",
+                    amount: (amt * 1000000000).toString() 
+                }]
             };
 
             try {
-                // 核心：这是最稳定的唤起密码支付界面的方法
-                await connector.sendTransaction(transaction);
-                alert("交易已发送，请在钱包查看结果");
+                // 执行支付：这行代码会尝试直接打开手机上的钱包签名页 [cite: 2026-04-25]
+                const result = await connector.sendTransaction(transaction);
+                alert("支付指令已提交！");
+                closeDrawer();
             } catch (e) {
-                console.error(e);
-                alert("支付被取消或出错");
+                console.error("支付失败详情:", e);
+                // 核心修复：如果没反应，手动弹窗提示引导
+                alert("如果没弹出支付，请确保 OKX 或 Tonkeeper 正在后台运行。");
+            } finally {
+                payBtn.innerText = "确认下注";
+                payBtn.disabled = false;
             }
         }
 
+        // UI 辅助函数
         function openDrawer(type, prob) {
             currentProb = prob;
-            document.getElementById('drawer-title').innerText = `下注: ${type} (${prob}%)`;
+            document.getElementById('drawer-title').innerText = `下注: ${type}`;
             document.getElementById('overlay').style.display = 'block';
             setTimeout(() => document.getElementById('drawer').classList.add('active'), 10);
         }
-
         function closeDrawer() {
             document.getElementById('drawer').classList.remove('active');
-            setTimeout(() => { document.getElementById('overlay').style.display = 'none'; }, 300);
+            setTimeout(() => document.getElementById('overlay').style.display = 'none', 300);
         }
-
         function setAmount(val) { document.getElementById('amount').value = val; updateProfit(); }
         function updateProfit() {
             let amt = document.getElementById('amount').value;
             let potential = amt > 0 ? (amt * (100 / currentProb)).toFixed(2) : "0.00";
-            document.getElementById('profit').innerText = `${potential} TON`;
+            // 这里可以增加收益显示的逻辑
         }
     </script>
 </body>
