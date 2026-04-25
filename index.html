@@ -4,94 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>中国预测市场</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { 
-            background-color: #0d1117; 
-            color: #e6edf3; 
-            font-family: -apple-system, system-ui, sans-serif; 
-            margin: 0; 
-            padding: 16px; 
-        }
-        .header { text-align: center; margin-bottom: 24px; }
-        .logo { font-size: 52px; }
-        .market-card { 
-            background: #161b22; 
-            border: 1px solid #30363d; 
-            border-radius: 16px; 
-            padding: 20px; 
-            margin-bottom: 20px; 
-        }
-        h2 { color: #d4af37; margin: 0 0 12px 0; font-size: 1.25rem; }
-        .stats { display: flex; justify-content: space-between; color: #8b949e; margin: 12px 0; }
-        .btn-group { display: flex; gap: 12px; margin: 20px 0; }
-        button { 
-            flex: 1; 
-            padding: 16px; 
-            font-size: 1.1rem; 
-            font-weight: bold; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-        }
-        .btn-yes { background: #238636; color: white; }
-        .btn-no { background: #da3633; color: white; }
-        .wallet-btn { 
-            background: #58a6ff; 
-            color: white; 
-            padding: 16px; 
-            border-radius: 12px; 
-            text-align: center; 
-            font-weight: bold; 
-            margin: 12px 0; 
-        }
+        body { background-color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .drawer-overlay { display: none; background: rgba(0,0,0,0.5); position: fixed; inset: 0; z-index: 40; }
+        .drawer { transform: translateY(100%); transition: transform 0.3s ease-out; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 50; padding: 20px; }
+        .drawer.active { transform: translateY(0); }
+        .gray-btn { background-color: #E5E7EB; color: #374151; }
+        .dark-btn { background-color: #374151; color: white; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo">♾️</div>
-        <h1>中国预测市场</h1>
-        <p style="color:#8b949e; margin-top:4px;">去中心化 · 链上结算</p >
+
+    <header class="bg-white p-4 flex justify-between items-center sticky top-0 z-10 border-b">
+        <h1 class="text-lg font-bold text-gray-700">中国预测市场</h1>
+        <button class="text-sm bg-gray-100 px-3 py-1 rounded-full border border-gray-300">连接钱包</button>
+    </header>
+
+    <div class="flex space-x-4 p-4 overflow-x-auto no-scrollbar">
+        <span class="text-blue-600 font-bold whitespace-nowrap">全部</span>
+        <span class="text-gray-500 whitespace-nowrap">汽车</span>
+        <span class="text-gray-500 whitespace-nowrap">体育</span>
+        <span class="text-gray-500 whitespace-nowrap">数码</span>
     </div>
 
-    <div class="market-card">
-        <h2>📊 Sora 4月内全球开放预测</h2>
-        <div class="stats">
-            <span>奖池: 1,280 USDT</span>
-            <span>参与: 142 人</span>
+    <main class="p-4 space-y-4">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <h2 class="font-bold text-gray-800 text-md mb-4">小鹏 2026年Q2交付量突破 50,000 辆？</h2>
+            <div class="flex space-x-3">
+                <button onclick="openDrawer('Yes', 65)" class="flex-1 dark-btn py-3 rounded-xl font-bold">Yes (65%)</button>
+                <button onclick="openDrawer('No', 35)" class="flex-1 gray-btn py-3 rounded-xl font-bold">No (35%)</button>
+            </div>
+            <div class="mt-3 flex justify-between text-xs text-gray-400">
+                <span>交易量: 1.2M TON</span>
+                <span>剩 3 天</span>
+            </div>
+        </div>
+    </main>
+
+    <div id="overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+    <div id="drawer" class="drawer">
+        <div class="flex justify-between items-center mb-6">
+            <h3 id="drawer-title" class="text-lg font-bold">下注: Yes</h3>
+            <button onclick="closeDrawer()" class="text-gray-400 text-2xl">&times;</button>
         </div>
         
-        <div class="btn-group">
-            <button class="btn-yes" onclick="bet('YES')">看好 YES (68%)</button>
-            <button class="btn-no" onclick="bet('NO')">看跌 NO (32%)</button>
+        <label class="text-sm text-gray-500 mb-2 block">输入下注金额 (TON)</label>
+        <input type="number" id="amount" placeholder="0.00" class="w-full text-3xl font-bold border-b-2 border-gray-200 focus:border-gray-800 outline-none py-2 mb-4">
+        
+        <div class="grid grid-cols-4 gap-2 mb-6">
+            <button onclick="setAmount(10)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">10</button>
+            <button onclick="setAmount(50)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">50</button>
+            <button onclick="setAmount(100)" class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">100</button>
+            <button class="bg-gray-100 py-2 rounded-lg text-sm text-gray-600">全部</button>
         </div>
 
-        <div onclick="connectWallet()" class="wallet-btn">
-            🔗 连接 Phantom 钱包下注
+        <div class="bg-gray-50 p-4 rounded-xl flex justify-between items-center mb-6">
+            <span class="text-sm text-gray-500">预计收益 (若猜中)</span>
+            <span class="text-green-600 font-bold" id="profit">0.00 TON</span>
         </div>
+
+        <button class="w-full dark-btn py-4 rounded-2xl font-bold text-lg" onclick="alert('即将唤起 TON 钱包支付...')">确认下注</button>
     </div>
 
     <script>
-        // 初始化 Telegram Mini App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();           // 让页面占满整个 Telegram 窗口
-        tg.MainButton.hide();  // 隐藏底部按钮
-
-        function connectWallet() {
-            tg.showAlert("正在连接 Phantom 钱包...\n\n（开发中，很快就能真实下注）");
+        let currentProb = 0;
+        function openDrawer(type, prob) {
+            currentProb = prob;
+            document.getElementById('drawer-title').innerText = `下注: ${type} (${prob}%)`;
+            document.getElementById('overlay').style.display = 'block';
+            setTimeout(() => document.getElementById('drawer').classList.add('active'), 10);
         }
-
-        function bet(side) {
-            tg.showConfirm(`确定要下注 ${side} 吗？`, function(confirmed) {
-                if (confirmed) {
-                    tg.showAlert(`✅ 已提交 ${side} 下注！\n\n资金将进入智能合约`);
-                }
-            });
+        function closeDrawer() {
+            document.getElementById('drawer').classList.remove('active');
+            setTimeout(() => document.getElementById('overlay').style.display = 'none', 300);
         }
-
-        // 显示用户名称（可选）
-        console.log("欢迎", tg.initDataUnsafe?.user?.first_name || "用户");
+        function setAmount(val) {
+            document.getElementById('amount').value = val;
+            updateProfit();
+        }
+        function updateProfit() {
+            let amt = document.getElementById('amount').value;
+            if(amt > 0) {
+                // 简化的赔率计算逻辑：(100 / 概率) * 金额
+                let potential = (amt * (100 / currentProb)).toFixed(2);
+                document.getElementById('profit').innerText = `${potential} TON`;
+            }
+        }
+        document.getElementById('amount').oninput = updateProfit;
     </script>
 </body>
 </html>
