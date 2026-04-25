@@ -64,7 +64,7 @@
             <span class="text-green-600 font-bold" id="profit">0.00 TON</span>
         </div>
 
-        <button class="w-full dark-btn py-4 rounded-2xl font-bold text-lg" onclick="alert('即将唤起 TON 钱包支付...')">确认下注</button>
+        <button class="w-full dark-btn py-4 rounded-2xl font-bold text-lg" onclick="payWithTon()">确认下注</button>
     </div>
 
     <script>
@@ -86,12 +86,33 @@
         function updateProfit() {
             let amt = document.getElementById('amount').value;
             if(amt > 0) {
-                // 简化的赔率计算逻辑：(100 / 概率) * 金额
                 let potential = (amt * (100 / currentProb)).toFixed(2);
                 document.getElementById('profit').innerText = `${potential} TON`;
             }
         }
         document.getElementById('amount').oninput = updateProfit;
+
+        // 这里是新增的打通钱包的最小化支付函数
+        function payWithTon() {
+            const walletAddress = "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y"; // 你的OKX地址
+            const amount = document.getElementById('amount').value;
+
+            if (!amount || amount <= 0) {
+                alert("请输入有效的下注金额");
+                return;
+            }
+
+            // 将金额转换为纳秒级 TON (1 TON = 1,000,000,000 NanoTON)
+            const nanoAmount = Math.floor(amount * 1000000000);
+
+            // 构建 TON 支付协议链接
+            const tonUrl = `ton://transfer/${walletAddress}?amount=${nanoAmount}&text=Bet-Prediction`;
+
+            // 在跳转前做最后确认，增加安全性
+            if (confirm(`确认下注 ${amount} TON 吗？\n点击确定将打开钱包完成支付`)) {
+                window.location.href = tonUrl;
+            }
+        }
     </script>
 </body>
 </html>
