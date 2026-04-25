@@ -13,9 +13,11 @@
         .drawer.active { transform: translateY(0); }
         .gray-btn { background-color: #E5E7EB; color: #374151; }
         .dark-btn { background-color: #374151; color: white; }
-        /* 隐藏滚动条 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 强制调整钱包按钮高度，防止遮挡 */
+        #ton-connect button { height: 32px !important; min-height: 32px !important; }
     </style>
 </head>
 <body>
@@ -72,31 +74,38 @@
     </div>
 
     <script>
-        // 1. 初始化 TON Connect 按钮逻辑
+        // 初始化 TON Connect
         const tonConnectUI = new TONConnectUI.TonConnectUI({
             manifestUrl: 'https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react/master/public/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
 
-        // 2. 界面交互逻辑
         let currentProb = 0;
         function openDrawer(type, prob) {
             currentProb = prob;
             document.getElementById('drawer-title').innerText = `下注: ${type} (${prob}%)`;
             document.getElementById('overlay').style.display = 'block';
-            setTimeout(() => document.getElementById('drawer').classList.add('active'), 10);
+            // 确保显示
+            const drawer = document.getElementById('drawer');
+            drawer.style.display = 'block';
+            setTimeout(() => drawer.classList.add('active'), 10);
         }
+
         function closeDrawer() {
             document.getElementById('drawer').classList.remove('active');
-            setTimeout(() => document.getElementById('overlay').style.display = 'none', 300);
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+            }, 300);
         }
+
         function setAmount(val) {
             document.getElementById('amount').value = val;
             updateProfit();
         }
+
         function updateProfit() {
             let amt = document.getElementById('amount').value;
-            if(amt > 0) {
+            if(amt > 0 && currentProb > 0) {
                 let potential = (amt * (100 / currentProb)).toFixed(2);
                 document.getElementById('profit').innerText = `${potential} TON`;
             } else {
@@ -105,7 +114,6 @@
         }
         document.getElementById('amount').oninput = updateProfit;
 
-        // 3. 支付逻辑函数
         function payWithTon() {
             const walletAddress = "UQCbO0NSAoAbfPyh1tPUZP-Npt66hqLQUiCunSWnfcEMAz2y"; 
             const amount = document.getElementById('amount').value;
